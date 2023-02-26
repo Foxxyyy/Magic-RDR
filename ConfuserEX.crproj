@@ -1,0 +1,4 @@
+<project outputDir="C:\Modding\Red Dead Redemption\Magic_RDR\Magic_RDR\bin\x86\Debug\Confused" baseDir="C:\Modding\Red Dead Redemption\Magic_RDR\Magic_RDR\bin\x86\Debug" xmlns="http://confuser.codeplex.com">
+  <packer id="compressor" />
+  <module path="MagicRDR.exe" />
+</project>

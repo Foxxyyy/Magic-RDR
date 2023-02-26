@@ -1,0 +1,9 @@
+RPFLoadLastRPF:True
+RPFLastRPFPath:C:\XboxGames\Red Dead Redemption\Red Dead Redemtion GOTY - Xbox 360 [RF][DVD1]\rdr2_layer1.rpf
+ListViewSorting:Ascending
+TreeViewShowLines:True
+TreeViewShowPlusMinus:True
+WPFUseCustomColor:True
+WPFCustomColor1:#FFFF8000
+WPFCustomColor2:#FF425C94
+TextureImageSizeMode:StretchImage
