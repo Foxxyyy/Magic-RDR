@@ -33,16 +33,16 @@ My Discord : Im Foxxyyy#1111
 - Options to automatically load previous opened .rpf (by default)
 - Custom background color for the model viewer
 
-- Script decompiler (.xsc)
+# Script decompiler (.xsc)
   - View most scripts
   - Export to C code
 
-- Texture viewer & editor (.xtd, .xsf, .xft, .xfd, .xvd)
+# Texture viewer & editor (.xtd, .xsf, .xft, .xfd, .xvd)
   - Export texture(s)
   - Import custom .dds with mipmaps
   - Supported formats at import : DXT1, DXT3, DXT5
 
-- Model viewer (.xft, .xfd, .xvd, .xbd)
+# Model viewer (.xft, .xfd, .xvd, .xbd)
   - View buildings, peds, props, etc
   - View, import & export embedded texture(s)
   - View used shader parameters
@@ -54,18 +54,18 @@ My Discord : Im Foxxyyy#1111
   - Export custom .xvd's to .xml for GTAV CodeWalker (still in beta)
   - Disable in-game static .xbd collisions (still in beta, file backups recommanded)
 
-- Basic data viewer (.xsi)
+# Basic data viewer (.xsi)
   - View sector bounds
   - Display sector objects names and positions
 
-- Basic shader data viewer (.fxc)
+# Basic shader data viewer (.fxc)
   - View shader parameters, rendering techniques
 
-- Stringtable viewer (.xst)
+# Stringtable viewer (.xst)
   - View and export text
   - Colored RDR strings such as <yellow>Yellow text</yellow
 
-- Audio player (.awc)
+# Audio player (.awc)
   - Play most sounds
   - Export sounds to .wav
 
