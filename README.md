@@ -16,6 +16,7 @@ My Discord : Im Foxxyyy#1111
 - .xst - StringTable (R* defined strings and subtitles)
 - .fxc - Compiled Shader
 - .awc - Audio container
+- More informations here : https://rage.re/docs?topic=28
 
 # Features you can get
 - Import, replace, remove files
