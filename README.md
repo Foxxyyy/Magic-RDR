@@ -78,5 +78,6 @@ My Discord : Im Foxxyyy#1111
 - aru
 
 # Testers
+- GuiCORLEONEx794
 - CabooseSayzWTF
 - FrostDragonZ
