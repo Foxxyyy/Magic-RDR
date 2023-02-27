@@ -64,7 +64,7 @@ My Discord : Im Foxxyyy#1111
 
 # Stringtable viewer (.xst)
   - View and export text
-  - Colored RDR strings such as <yellow>Yellow text</yellow
+  - Colored RDR strings in the viewer
 
 # Audio player (.awc)
   - Play most sounds
