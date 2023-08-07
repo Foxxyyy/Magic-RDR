@@ -1,4 +1,7 @@
 # Magic-RDR
+
+(I will add support for the Nintendo Switch version ASAP)
+
 Best RPF Editor for Red Dead Redemption
 Supports only Xbox 360 files, also works if you use Xenia.
 Some things can be buggy like viewing mipmaps or editing files so I recommend to make backups
