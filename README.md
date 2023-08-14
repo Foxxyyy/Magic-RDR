@@ -1,11 +1,9 @@
 # Magic-RDR
 
-(I will add support for the Nintendo Switch version ASAP)
+(I will add support for the Nintendo Switch ASAP)
 
-Best RPF Editor for Red Dead Redemption
-Supports only Xbox 360 files, also works if you use Xenia.
-Some things can be buggy like viewing mipmaps or editing files so I recommend to make backups
-My Discord : Im Foxxyyy#1111
+RPF Editor for Red Dead Redemption
+Supports only Xbox 360 | Xenia.
 
 # Supported RAGE Resources
 - .xft - Fragments (Complex models, props)
