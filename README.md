@@ -1,75 +1,49 @@
-# Magic-RDR
-
-(I will add support for the Nintendo Switch ASAP)
+# Magic-RDR v1.3.0
 
 RPF Editor for Red Dead Redemption
-Supports only Xbox 360 | Xenia.
+Supports Xbox 360 & Nintendo Switch versions.
 
-# Supported RAGE Resources
-- .xft - Fragments (Complex models, props)
-- .xfd - Frag Drawable (Dictionary of multiple drawables, usually used for LODs)
-- .xvd - Volume Data (Static meshes, mostly buildings)
-- .xbd - Bounds Dictionary (Dictionary of static collisions)
-- .xtd - Texture Dictionary (Dictionary of textures)
-- .xsf - ScaleForm (UI textures, single mipmapped)
-- .xsi - Sector Items (Bounding boxes hierarchy, objects positions, curves, etc)
-- .xsc - Scripts (In-game scripts including story and online mode)
-- .xst - StringTable (R* defined strings and subtitles)
-- .fxc - Compiled Shader
+(The Nintendo Switch beta version can be found in the release tab)
+
+# RAGE Resources
+- #ft - Fragments (Complex models, props)
+- #fd - Frag Drawable (Dictionary of multiple drawables, usually used for LODs)
+- #vd - Volume Data (Static meshes, mostly buildings)
+- #bd - Bounds Dictionary (Dictionary of static collisions)
+- #td - Texture Dictionary (Dictionary of textures)
+- #sf - ScaleForm (UI textures, single mipmapped)
+- #si - Sector Items (Bounding boxes hierarchy, objects positions, curves, etc)
+- #sc - Scripts (In-game scripts including story and online mode)
+- #st - StringTable (R* defined strings and subtitles)
+- .fxc, .nvn - Compiled Shader
 - .awc - Audio container
-- More informations here : https://rage.re/docs?topic=28
+- More informations in https://rage.re/docs?topic=28
 
-# Features you can get
-- Import, replace, remove files
-- Import directory with multiple files
-- Create, remove directories
-- Extract files/resources (compressed or uncompressed) and directories
-- Display files properties
-- Copy files paths
-- Save .rpf (sorting entries by offset is recommanded)
-- View most text files and export (editing can be buggy depending on what file you want to edit)
-- Search files and access their location
-- Basic Hex viewer
-- Hash generator
-- Options to sort the list view (ascending by default/descending)
-- Options to automatically load previous opened .rpf (by default)
-- Custom background color for the model viewer
+# Features
+ - Import/replace, remove/add files
+ - Remove/add directories
+ - Import directory
+ - Extract regular files, resources and directories
+ - Show files properties
+ - Copy files paths
+ - Save/create new .RPF
+ - View text files and export
+ - Search files and access their location
+ - Basic Hex viewer
+ - Hash generator
+ - Sort entries (ascending/descending)
+ - Open previous .RPF by default (if still exists)
+ - Script decompiler (#sc)
+ - Texture viewer & editor (#td, #sf, #ft, #fd, #vd)
+ - Model viewer (#ft, #fd, #vd, #bd)
+ - Basic data viewer (#si)
+ - Basic shader data viewer (.fxc, .nvn)
+ - Stringtable viewer (#st)
+ - Audio player (.awc)
 
-# Script decompiler (.xsc)
-  - View most scripts
-  - Export to C code
-
-# Texture viewer & editor (.xtd, .xsf, .xft, .xfd, .xvd)
-  - Export texture(s)
-  - Import custom .dds with mipmaps
-  - Supported formats at import : DXT1, DXT3, DXT5
-
-# Model viewer (.xft, .xfd, .xvd, .xbd)
-  - View buildings, peds, props, etc
-  - View, import & export embedded texture(s)
-  - View used shader parameters
-  - View bones positions
-  - View specific .xvd geometries
-  - Show bounds, vertices and/or faces
-  - Export models to .obj with vertex normals and texcoords included
-  - Change in-game .xvd's models position (still in beta)
-  - Export custom .xvd's to .xml for GTAV CodeWalker (still in beta)
-  - Disable in-game static .xbd collisions (still in beta, file backups recommanded)
-
-# Basic data viewer (.xsi)
-  - View sector bounds
-  - Display sector objects names and positions
-
-# Basic shader data viewer (.fxc)
-  - View shader parameters, rendering techniques
-
-# Stringtable viewer (.xst)
-  - View and export text
-  - Colored RDR strings in the viewer
-
-# Audio player (.awc)
-  - Play most sounds
-  - Export sounds to .wav
+# Notes
+If you want to edit regular files such as .xml, the best way to do it is to extract it, to use a text editor such as Notepad++. Then when you're good, save it and import it back in the .RPF. Don't forget to check the 'Compress' checkbox when you import it.
+The compress option is necessary for all the non-resource files. You can see if it's a resource by clicking on the file properties in the viewer.
 
 # Credits
 - Im Foxxyyy
@@ -80,6 +54,6 @@ Supports only Xbox 360 | Xenia.
 - aru
 
 # Testers
-- GuiCORLEONEx794
 - CabooseSayzWTF
+- GuiCORLEONEx794
 - FrostDragonZ
