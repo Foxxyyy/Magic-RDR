@@ -1,6 +1,7 @@
-# Magic-RDR v1.3.0
+# Magic RDR v1.3.0
 
 RPF Editor for Red Dead Redemption
+
 Supports Xbox 360 & Nintendo Switch versions.
 
 (The Nintendo Switch beta version can be found in the release tab)
