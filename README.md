@@ -4,8 +4,6 @@ RPF Editor for Red Dead Redemption
 
 Supports Xbox 360 & Nintendo Switch versions.
 
-(The Nintendo Switch beta version can be found in the release tab)
-
 # RAGE Resources
 - #ft - Fragments (Complex models, props)
 - #fd - Frag Drawable (Dictionary of multiple drawables, usually used for LODs)
@@ -44,7 +42,9 @@ Supports Xbox 360 & Nintendo Switch versions.
 
 # Notes
 If you want to edit regular files such as .xml, the best way to do it is to extract it, to use a text editor such as Notepad++. Then when you're good, save it and import it back in the .RPF. Don't forget to check the 'Compress' checkbox when you import it.
-The compress option is necessary for all the non-resource files. You can see if it's a resource by clicking on the file properties in the viewer.
+The compress option is necessary for all the non-resource files. You can see if a file is a resource by clicking on file properties.
+
+Don't check 'compress' for any of the RAGE resources listed before.
 
 # Credits
 - Im Foxxyyy
