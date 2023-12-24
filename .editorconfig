@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# IDE0059: Assignation inutile d'une valeur
+dotnet_diagnostic.IDE0059.severity = none
+
+# IDE0044: Ajouter un modificateur readonly
+dotnet_diagnostic.IDE0044.severity = silent
+
+# IDE0058: La valeur d'expression n'est jamais utilisée
+dotnet_diagnostic.IDE0058.severity = none
+
+# IDE0055: Corriger la mise en forme
+dotnet_diagnostic.IDE0055.severity = none

@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="ModelViewer.ModelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:HelixToolkit="clr-namespace:HelixToolkit.Wpf;assembly=HelixToolkit.Wpf" xmlns:modelviewer="clr-namespace:ModelViewer" d:DataContext="{d:DesignInstance Type=modelviewer:ModelView}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Name="Grid">
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <LinearGradientBrush.GradientStops>
+                    <GradientStop Color="{Binding FirstGradientColor, UpdateSourceTrigger=PropertyChanged}" Offset="0"/>
+                    <GradientStop Color="{Binding SecondGradientColor, UpdateSourceTrigger=PropertyChanged}" Offset="1"/>
+                </LinearGradientBrush.GradientStops>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <HelixToolkit:HelixViewport3D ClipToBounds="True" ShowCameraInfo="True" x:Name="View" IsMoveEnabled="True" CoordinateSystemHorizontalPosition="Stretch" ShowFrameRate="True" ZoomExtentsWhenLoaded="True" ChangeFieldOfViewCursor="ScrollNS" PanCursor="Hand" RotateCursor="SizeAll" ZoomCursor="SizeNS" ZoomRectangleCursor="ScrollSE">
+            <HelixToolkit:SunLight/>
+            <ModelVisual3D Content="{Binding Model, UpdateSourceTrigger=PropertyChanged}"/>
+            <HelixToolkit:LinesVisual3D Points="{Binding Points, UpdateSourceTrigger=PropertyChanged}" Color="Yellow" Thickness="2" />
+            <HelixToolkit:GridLinesVisual3D Visible="{Binding GridVisibility}" Width="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" Length="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" MinorDistance="1" MajorDistance="1" Thickness="0.01" Fill="Black"/>
+            <HelixToolkit:DirectionalHeadLight Color="White" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <HelixToolkit:HelixViewport3D.Camera>
+                <PerspectiveCamera LookDirection="{Binding CameraDirection, UpdateSourceTrigger=PropertyChanged}"/>
+            </HelixToolkit:HelixViewport3D.Camera>
+        </HelixToolkit:HelixViewport3D>
+        <Label Content="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="480" Foreground="Yellow" />
+    </Grid>
+</UserControl>

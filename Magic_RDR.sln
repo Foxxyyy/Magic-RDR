@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic_RDR", "Magic_RDR\Magic_RDR.csproj", "{BF4282B2-4347-45B8-9213-07F03EAD5115}"
+	ProjectSection(ProjectDependencies) = postProject
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4} = {572F31BD-3908-4673-9A4A-5BF90EBA5ED4}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A651168B-6237-476A-B998-62056C777A73}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelViewer", "ModelViewer\ModelViewer.csproj", "{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Debug|x86.ActiveCfg = Debug|x86
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Debug|x86.Build.0 = Debug|x86
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Release|x86.ActiveCfg = Release|x86
+		{BF4282B2-4347-45B8-9213-07F03EAD5115}.Release|x86.Build.0 = Release|x86
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Debug|x86.Build.0 = Debug|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Release|x86.ActiveCfg = Release|Any CPU
+		{572F31BD-3908-4673-9A4A-5BF90EBA5ED4}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6827B98A-6F3C-44DB-B103-C96029D3DC59}
+	EndGlobalSection
+EndGlobal
