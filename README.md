@@ -2,7 +2,7 @@
 
 RPF Editor for Red Dead Redemption
 
-Supports Xbox 360, Nintendo Switch (and potentially PS4) versions.
+Supports Xbox 360, Nintendo Switch (and potentially PS4/PS5) versions.
 
 # Features
  - Import/replace, remove/add files
