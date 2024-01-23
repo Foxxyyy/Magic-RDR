@@ -1,23 +1,14 @@
-# Magic RDR v1.3.0
+# Magic RDR v1.3.6
 
 RPF Editor for Red Dead Redemption
 
 Supports Xbox 360, Nintendo Switch (and potentially PS4/PS5) versions.
+Some features are supported only for Xbox (xsf, awc, etc)
 
 # Features
- - Import/replace, remove/add files
- - Remove/add directories
- - Import directory
- - Extract regular files, resources and directories
- - Show files properties
- - Copy files paths
- - Save/create new .RPF
- - View text files and export them
- - Search for files
+ - Add/remove files/directories
  - Basic Hex viewer
  - Hash generator
- - Sort entries (ascending/descending)
- - Open previous .RPF by default (if still exists)
  - Script decompiler (#sc)
  - Texture viewer & editor (#td, #sf, #ft, #fd, #vd)
  - Model viewer (#ft, #fd, #vd, #bd)
