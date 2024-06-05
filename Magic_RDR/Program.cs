@@ -1,20 +1,22 @@
-﻿using Magic_RDR.RPF;
-using System;
+﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using Magic_RDR.RPF;
 
 namespace Magic_RDR
 {
     static class Program
     {
-        public static string SaveRPFPath = string.Empty;
+        [DllImport("kernel32.dll")] static extern IntPtr GetConsoleWindow();
+        [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll")] static extern bool SetProcessDPIAware();
 
-        [STAThread]
-        static void Main(string[] args)
+        public static string SaveRPFPath = string.Empty;
+        const int SW_HIDE = 0;
+
+        [STAThread] static void Main(string[] args)
         {
             if (!AppUtils.FileExists("/Assemblies/xcompress32.dll"))
                 throw new Exception("Could not find \"xcompress32.dll\"");
@@ -33,6 +35,10 @@ namespace Magic_RDR
 
             if (args.Length == 0)
             {
+                //Hide the console window
+                var handle = GetConsoleWindow();
+                ShowWindow(handle, SW_HIDE);
+
                 if (Environment.OSVersion.Version.Major >= 6)
                     SetProcessDPIAware();
 
@@ -63,7 +69,7 @@ namespace Magic_RDR
             else
             {
                 Console.WriteLine("\n---------------------");
-                Console.WriteLine("\nMagicRDR by Im Foxxyyy");
+                Console.WriteLine("\nMagicRDR by Mars (Im Foxxyyy)");
                 string actionType = args[0];
                 string rpfPath = args[1];
                 string filesDirectoryPath = args[2];
@@ -157,12 +163,12 @@ namespace Magic_RDR
                     else
                         form.saveToolStripMenuItem1_Click(null, null);
 
-                    Console.WriteLine(string.Format("Done {0}", (actionType == "-replace") ? "replacing" : "importing"));
+                    Console.WriteLine(string.Format("Done {0}", (actionType == "-replace") ? "replacing file(s)!" : "importing file(s)!"));
                     Console.WriteLine("Closing in 3...");
                     Thread.Sleep(1000);
-                    Console.Write(" 2...");
+                    Console.WriteLine("Closing in 2...");
                     Thread.Sleep(1000);
-                    Console.Write(" 1...\n");
+                    Console.WriteLine("Closing in 1...");
                     Thread.Sleep(1000);
                     Console.WriteLine("---------------------\n");
                     Environment.Exit(0);
@@ -174,8 +180,5 @@ namespace Magic_RDR
                 Console.ReadLine();
             }
         }
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool SetProcessDPIAware();
     }
 }

@@ -1,11 +1,9 @@
 ﻿using Magic_RDR.Models;
-using Magic_RDR.Properties;
 using Magic_RDR.RPF;
 using Magic_RDR.Viewers;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -1121,8 +1119,8 @@ namespace Magic_RDR
         private void creditsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             StringBuilder message = new StringBuilder();
-            message.AppendLine("Made by Im Foxxyyy");
-            message.AppendLine("Thanks to XBLToothPick/revelations/Shvab\n");
+            message.AppendLine("Made by Mars (Im Foxxyyy)");
+            message.AppendLine("Thanks to XBLToothPick/revelations/Shvab/OAleex\n");
             message.AppendLine("GitHub : https://github.com/Foxxyyy");
             message.AppendLine("Discord : #imfoxxyyy");
             MessageBox.Show(message.ToString(), "Credits", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1364,6 +1362,7 @@ namespace Magic_RDR
             {
                 node.BackColor = CurrentDirectory.Write ? (CurrentDirectory.CustomDataStream == null ? Color.Empty : Color.FromArgb(150, 50, byte.MaxValue, 50)) : Color.FromArgb(150, byte.MaxValue, 50, 50);
             }
+            LoadDirectory(CurrentDirectory.SuperParent, true);
         }
 
         public static List<TreeNode> GetAllNodes(TreeNode node)
@@ -1437,7 +1436,6 @@ namespace Magic_RDR
                     return;
 
                 LoadDirectory(GetEntryByPath(node.Replace("\\", "/"), CurrentRPF.TOC.SuperEntries[0]));
-                treeView.SelectedNode = null;
             }
         }
 
