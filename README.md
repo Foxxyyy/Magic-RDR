@@ -2,8 +2,8 @@
 
 RPF Editor for Red Dead Redemption
 
-Supports Xbox 360, Nintendo Switch (and potentially PS4/PS5) versions.
-Some features are supported only for Xbox (xsf, awc, etc)
+Supports Xbox 360, Nintendo Switch (and potentially PS4/PS5) versions.                   
+Some features are supported only for Xbox (.xsf, .awc, etc.)
 
 # Features
  - Add/remove files/directories
@@ -25,11 +25,15 @@ Some features are supported only for Xbox (xsf, awc, etc)
 - apii intense
 - aru
 
-# Testers
+# Helpers
 - CabooseSayzWTF
 - GuiCORLEONEx794
 - FrostDragonZ
+- OAleex
 
 # Random Pictures
 ![Screenshot](Magic_RDR/Resources/example_audio_player.png)
+![Screenshot](Magic_RDR/Resources/example_model_viewer_1.png)
+![Screenshot](Magic_RDR/Resources/example_model_viewer_2.png)
+![Screenshot](Magic_RDR/Resources/example_texture_viewer.png)
 ![Screenshot](Magic_RDR/Resources/example_script_viewer.png)
