@@ -53,7 +53,7 @@ namespace Magic_RDR
 					case 1:
 						return _Operands[0];
 					case 2:
-						return DataUtils.SwapEndian(BitConverter.ToUInt16(_Operands, 0));
+						return DataUtils.SwapEndian(BitConverter.ToInt16(_Operands, 0));
 					case 3:
 						return _Operands[0] << 16 | _Operands[1] << 8 | _Operands[2];
 					case 4:
@@ -179,8 +179,10 @@ namespace Magic_RDR
 			{
 				int cases = GetOperand(0);
 				if (index >= cases)
-					throw new Exception("Out Or Range Script Case");
-				NativeParamInfo.IntToHex((int)DataUtils.SwapEndian(BitConverter.ToUInt32(_Operands, 1 + index * 6)));
+				{
+                    throw new Exception("Out Or Range Script Case");
+                }
+				return NativeParamInfo.IntToHex((int)DataUtils.SwapEndian(BitConverter.ToUInt32(_Operands, 1 + index * 6)));
 			}
 			throw new Exception("Not A Switch Statement");
 		}
@@ -259,7 +261,7 @@ namespace Magic_RDR
 		{
 			get
 			{
-				if (_Instruction == Instruction.Jump || _Instruction == Instruction.JumpFalse)
+				if (_Instruction == Instruction.Jump)
 				{
 					if (GetJumpOffset <= 0)
 						return false;
@@ -286,7 +288,12 @@ namespace Magic_RDR
 				throw new Exception("Not a global variable");
 			}
 		}
-	}
+
+        public override string ToString()
+        {
+            return Instruction.ToString();
+        }
+    }
 
 	internal enum Instruction
 	{

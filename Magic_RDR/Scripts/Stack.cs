@@ -150,9 +150,7 @@ namespace Magic_RDR
 						count++;
 						break;
 					case StackValue.Type.Struct:
-						if (count + top.StructSize > size)
-							throw new Exception("Struct size too large");
-						count += top.StructSize;
+						count ++;
 						items.Add(new StackValue(StackValue.Type.Literal, top.Value));
 						break;
 					default:
@@ -236,8 +234,8 @@ namespace Magic_RDR
 				{
 					return "&" + val.Value;
 				}
-				else throw new Exception("Not a literal item recieved");
-			}			
+				else return val.Value;
+            }			
 			return val.Value;
 		}
 
@@ -269,7 +267,7 @@ namespace Magic_RDR
 		private string PopPointer()
 		{
 			StackValue val = Pop();
-			if (val.ItemType == StackValue.Type.Pointer)
+			if (val.ItemType == StackValue.Type.Pointer || val.ItemType == StackValue.Type.Struct)
 			{
 				if (val.isNotVar)
 					return "&(" + val.Value + ")";
@@ -507,9 +505,9 @@ namespace Magic_RDR
 
 		public void Op_Add()
 		{
-			StackValue s1, s2;
-			s1 = Pop();
-			s2 = Pop();
+			var s1 = Pop();
+			var s2 = Pop();
+
 			if (s1.ItemType == StackValue.Type.Literal && s2.ItemType == StackValue.Type.Literal)
 			{
 				Push("(" + s2.Value + " + " + s1.Value + ")", DataType.Int);
@@ -525,7 +523,11 @@ namespace Magic_RDR
 				Push("(&" + s1.Value + " + " + s2.Value + ")", DataType.Unk);
 				return;
 			}
-			throw new Exception("Unexpected stack value");
+			else
+			{
+                Push("(" + s2.Value + " + " + s1.Value + ")", DataType.Int);
+                return;
+            }
 		}
 
 		public void Op_Addf()
@@ -556,8 +558,12 @@ namespace Magic_RDR
 				Push("(&" + s1.Value + " - " + s2.Value + ")", DataType.Unk);
 				return;
 			}
-			throw new Exception("Unexpected stack value");
-		}
+			else
+            {
+                Push("(" + s2.Value + " - " + s1.Value + ")", DataType.Int);
+                return;
+            }
+        }
 
 		public void Op_Subf()
 		{
@@ -653,7 +659,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " == " + s1);
+			PushCond(s2 + " != " + s1);
 
 		}
 
@@ -662,7 +668,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " != " + s1);
+			PushCond(s2 + " == " + s1);
 		}
 
 		public void Op_CmpGE()
@@ -670,7 +676,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " >= " + s1);
+			PushCond(s2 + " <= " + s1);
 		}
 
 		public void Op_CmpGT()
@@ -678,7 +684,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " > " + s1);
+			PushCond(s2 + " < " + s1);
 		}
 
 		public void Op_CmpLE()
@@ -686,7 +692,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " <= " + s1);
+			PushCond(s2 + " >= " + s1);
 		}
 
 		public void Op_CmpLT()
@@ -694,7 +700,7 @@ namespace Magic_RDR
 			string s1, s2;
 			s1 = PopLit();
 			s2 = PopLit();
-			PushCond(s2 + " < " + s1);
+			PushCond(s2 + " > " + s1);
 		}
 
 		public void Op_Vadd()
@@ -764,13 +770,13 @@ namespace Magic_RDR
 		{
 			StackValue s1 = Pop();
 			StackValue s2 = Pop();
-			int temp;
 
-			if (s1.ItemType != StackValue.Type.Literal && s1.ItemType != StackValue.Type.Literal)
-				throw new Exception("Not a literal item recieved");
-			if (s1.Datatype == DataType.Bool || s2.Datatype == DataType.Bool)
+            if (s1.ItemType != StackValue.Type.Literal && s2.ItemType != StackValue.Type.Literal)
+                throw new Exception("Not a literal item recieved");
+
+            if (s1.Datatype == DataType.Bool || s2.Datatype == DataType.Bool)
 				PushCond("(" + s2.Value + " && " + s1.Value + ")");
-			else if (DataUtils.IntParse(s1.Value, out temp) || DataUtils.IntParse(s2.Value, out temp))
+			else if (DataUtils.IntParse(s1.Value, out int temp) || DataUtils.IntParse(s2.Value, out temp))
 				Push(s2.Value + " & " + s1.Value, DataType.Int);
 			else
 				Push("(" + s2.Value + " && " + s1.Value + ")");
@@ -781,8 +787,9 @@ namespace Magic_RDR
 			StackValue s1 = Pop();
 			StackValue s2 = Pop();
 
-            if (s1.ItemType != StackValue.Type.Literal && s2.ItemType != StackValue.Type.Literal)
-                throw new Exception("Not a literal item recieved");
+			if (s1.ItemType != StackValue.Type.Literal && s2.ItemType != StackValue.Type.Literal)
+				throw new Exception("Not a literal item recieved");
+
             if (s1.Datatype == DataType.Bool || s2.Datatype == DataType.Bool)
 				PushCond("(" + s2.Value + " || " + s1.Value + ")");
 			else if (DataUtils.IntParse(s1.Value, out int temp) || DataUtils.IntParse(s2.Value, out temp))
@@ -802,9 +809,9 @@ namespace Magic_RDR
 		string PopStructAccess()
 		{
 			StackValue val = Pop();
-			if(val.ItemType == StackValue.Type.Pointer)
+			if (val.ItemType == StackValue.Type.Pointer)
 				return val.Value + ".";
-			else if(val.ItemType == StackValue.Type.Literal)
+			else if (val.ItemType == StackValue.Type.Literal)
 				return (val.Value.Contains(" ") ? "(" + val.Value + ")" : val.Value) + "->";
 			throw
 				new Exception("Not a pointer item recieved");

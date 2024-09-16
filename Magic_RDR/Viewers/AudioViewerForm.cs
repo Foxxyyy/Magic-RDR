@@ -1,22 +1,12 @@
-﻿using FastColoredTextBoxNS;
-using Magic_RDR.Application;
-using Magic_RDR.RPF;
+﻿using Magic_RDR.Application;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Media;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Security.Policy;
 using System.Threading;
 using System.Windows.Forms;
-using static ICSharpCode.SharpZipLib.Zip.ExtendedUnixData;
 using static Magic_RDR.RPF6.RPF6TOC;
-using static Pik.IO.PikIO;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace Magic_RDR.Viewers
 {
@@ -360,17 +350,11 @@ namespace Magic_RDR.Viewers
                                 byte[] data = new byte[chunkDataInfo.Size];
                                 if (chunkDataInfo.Tag == AwcChunkType.data)
                                 {
-                                    data = reader.ReadBytes(chunkDataInfo.Size);
-                                    //File.WriteAllBytes(@"C:\Users\fumol\OneDrive\Bureau\audio.data", data);
-                                    /*if (chunk != null)
-                                        data = DecodeADPCM(data, (int)chunk.Samples);
-                                    else
-                                        data = DecodeADPCM(data, (int)chunkFormat.Channels[0].Samples);*/
+                                    var header = reader.ReadBytes(0x60);
+                                    data = reader.ReadBytes(chunkDataInfo.Size - 0x60);
 
-                                    //Stream test = new XMA2DecoderStream(new MemoryStream(data));
-                                    //var test = new MP3DecoderStream(new MemoryStream(data));
-                                    //byte[] test2 = new byte[test._stream.Length];
-                                    //test._stream.Read(test2, 0, test2.Length);
+                                    if (chunk != null) data = DecodeADPCM(data, (int)chunk.Samples);
+                                    else data = DecodeADPCM(data, (int)chunkFormat.Channels[0].Samples);
 
                                     string hexString = info[i].Id.ToString("X");
                                     string desiredFileName = string.Format("0x{0}.wav", hexString.Length == 7 ? ("0" + hexString) : hexString);
@@ -591,12 +575,19 @@ namespace Magic_RDR.Viewers
 
     public enum AwcCodecType
     {
-        PCM = 0, //Max Payne 3 PC
-        PCM2 = 1, //PC & PS3
+        PCM_16BIT_LITTLE_ENDIAN = 0, //Max Payne 3 PC
+        PCM_16BIT_BIG_ENDIAN = 1,
+        PCM_32BIT_LITTLE_ENDIAN = 2,
+        PCM_32BIT_BIG_ENDIAN = 3,
         ADPCM = 4, //IMA PC
         XMA2 = 5, //Xbox 360
-        MPEG = 7, //PS3
-        VORBIS = 8 //RDR2 PC
+        XWMA = 6, //Xbox 360
+        MP3 = 7, //PS3
+        OGG = 8, //PC only
+        AAC = 9, //PC only
+        WMA = 10, //PC only
+        ATRAC9 = 11, //Orbis
+        UNKNOWN = 12
     }
 
     public class FormatChunk

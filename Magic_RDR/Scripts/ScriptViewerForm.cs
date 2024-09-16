@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using Magic_RDR.Application;
 using Magic_RDR.RPF;
 using static Magic_RDR.RPF6.RPF6TOC;
@@ -19,7 +19,6 @@ namespace Magic_RDR
 
         public static object ThreadLock;
         public static string DecompiledCode;
-        public static int ExceptionsHandled = 0;
 
         public ScriptViewerForm(TOCSuperEntry entry)
         {
@@ -27,7 +26,6 @@ namespace Magic_RDR
             ThreadLock = new object();
             Text = string.Format("MagicRDR - Script Viewer [{0}]", entry.Entry.Name);
             FileName = entry.Entry.Name;
-            ExceptionsHandled = 0;
 
             FileEntry file = entry.Entry.AsFile;
             RPFFile.RPFIO.Position = file.GetOffset();
@@ -171,9 +169,9 @@ namespace Magic_RDR
                 {
                     Functions[i].PreDecode();
                 }
-                catch
+                catch (Exception ex)
                 {
-                   ScriptViewerForm.ExceptionsHandled++;
+                    Debug.WriteLine($"ERROR when pre-decoding {Functions[i].Name} : {ex.Message}\nStack trace: {ex.StackTrace}");
                 }
             }
 
@@ -184,9 +182,9 @@ namespace Magic_RDR
                 {
                     Functions[i].Decode();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    ScriptViewerForm.ExceptionsHandled++;
+                    Debug.WriteLine($"ERROR when decoding {Functions[i].Name} : {ex.Message}\nStack trace: {ex.StackTrace}");
                 }
             }
 
@@ -379,7 +377,6 @@ namespace Magic_RDR
 
             while (!IsReturnInstruction(temp))
             {
-                //Console.WriteLine(name + " " + CodeTable[temp]);
                 switch (CodeTable[temp])
                 {
                     case 37: temp += 1; break;
@@ -458,8 +455,11 @@ namespace Magic_RDR
                 }
                 temp += 1;
             }
+
             if (OpcodeReturn)
+            {
                 ReturnType = CodeTable[temp + 2];
+            }
 
             int Location = start2;
             if (start1 == start2)

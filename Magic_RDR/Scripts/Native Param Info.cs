@@ -32,6 +32,7 @@ namespace Magic_RDR
 			}
 			for (int i = 0; i < currentParam.Length; i++)
 			{
+				if (i >= param.Length) continue;
 				if (Types.gettype(currentParam[i]).precedence < Types.gettype(param[i]).precedence)
 				{
 					currentParam[i] = param[i];
@@ -61,6 +62,8 @@ namespace Magic_RDR
 		public Stack.DataType GetParameterType(uint hash, int index)
 		{
 			if (!Natives.ContainsKey(hash))
+				return Stack.DataType.Unk;
+			if (index >= Natives[hash].Item2.Length)
 				return Stack.DataType.Unk;
 			return Natives[hash].Item2[index];
 		}
