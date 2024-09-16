@@ -1,13 +1,14 @@
-﻿[*.cs]
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# http://editorconfig.org
 
-# IDE0059: Assignation inutile d'une valeur
-dotnet_diagnostic.IDE0059.severity = none
+root = true
 
-# IDE0044: Ajouter un modificateur readonly
-dotnet_diagnostic.IDE0044.severity = silent
-
-# IDE0058: La valeur d'expression n'est jamais utilisée
-dotnet_diagnostic.IDE0058.severity = none
-
-# IDE0055: Corriger la mise en forme
-dotnet_diagnostic.IDE0055.severity = none
+[*]
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 80
