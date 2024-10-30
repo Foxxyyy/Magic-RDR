@@ -1,8 +1,10 @@
 # Magic RDR v1.3.6
 
-RPF Editor for Red Dead Redemption
+RPF Editor for Red Dead Redemption (no longer in development)
 
-Supports Xbox 360, Nintendo Switch (and potentially PS4/PS5) versions.                   
+If you want to mod the PC or Nintendo Switch versions please use [CodeX](https://github.com/Foxxyyy/CodeX.Games.RDR1) which is miles better.
+
+Supports Xbox 360, Nintendo Switch, PS4 & PC versions.                   
 Some features are supported only for Xbox (.xsf, .awc, etc.)
 
 # Features
