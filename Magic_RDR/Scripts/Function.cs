@@ -37,8 +37,9 @@ namespace Magic_RDR
 		internal bool DecodeStarted = false;
 		internal bool preDecoded = false;
 		internal bool preDecodeStarted = false;
+        internal object _threadLock = new object();
 
-		public Function(ScriptFile Owner, string name, int pcount, int vcount, int rcount, int location, int locmax)
+        public Function(ScriptFile Owner, string name, int pcount, int vcount, int rcount, int location, int locmax)
 		{
 			Scriptfile = Owner;
 			Name = name;
@@ -132,8 +133,9 @@ namespace Magic_RDR
 				name = name.Replace("var static", "static var");
 			working = "(" + Params.GetPDec() + ")";
 
-			return name + working + " //Position: 0x" + Location.ToString("X");
-		}
+			return name + working + $" //Position: 0x{MaxLocation:X} / {MaxLocation}";
+
+        }
 
 		public string GetFrameVarName(uint index) //Determines if a frame variable is a parameter or a variable and returns its name
 		{
@@ -160,7 +162,7 @@ namespace Magic_RDR
 
         public FunctionName GetFunctionNameFromOffset(int offset, int opcode) //Gets the function info given the offset where its called from
 		{
-			int jPos = GetCallOffset(offset, opcode);
+			int jPos = GetCallOffset((ushort)offset, opcode);
 			if (Scriptfile.FunctionLoc.ContainsKey(jPos + 2))
 				return Scriptfile.FunctionLoc[jPos + 2];
 			else if (Scriptfile.FunctionLoc.ContainsKey(jPos))
@@ -169,11 +171,13 @@ namespace Magic_RDR
 				return null;
 		}
 
-		public Function GetFunctionFromOffset(int offset) //Gets the function info given the offset where its called from
+		public Function GetFunctionFromOffset(int offset, int opcode) //Gets the function info given the offset where its called from
 		{
-			foreach (Function function in Scriptfile.Functions)
+            int jPos = GetCallOffset((ushort)offset, opcode);
+            foreach (Function function in Scriptfile.Functions)
 			{
-				return function;
+                if (function.Location == jPos || function.Location == jPos + 2)
+                    return function;
 			}
 			throw new Exception("Function wasn't found");
 		}
@@ -214,7 +218,7 @@ namespace Magic_RDR
 			if (Instructions == null)
 				return;
 
-			lock (ScriptViewerForm.ThreadLock)
+			lock (_threadLock)
 			{
 				DecodeStarted = true;
 				if (Decoded)
@@ -365,7 +369,14 @@ namespace Magic_RDR
 					goto startsw;
 				}
 			}
-			int tempoff = 0;
+
+            // some funcs contain a return opcode followed by a jump, usually right to the end of the current func
+            // if there was a return before this jump then ignore it
+            // TODO: this could have false positives if the return was jumped over as part of an if statement though...
+            if (Offset > 0 && Instructions[Offset - 1].IsReturnInstruction)
+                return;
+
+            int tempoff = 0;
 			if (Instructions[Offset + 1].Offset == Outerpath.EndOffset)
 			{
 				if (Instructions[Offset].GetJumpOffset != Instructions[Offset + 1].Offset)
@@ -399,10 +410,11 @@ namespace Magic_RDR
 				}
 				return;
 			}
-			start:
+
 			//Check to see if the jump is just jumping past nops(end of code table)
 			//should be the only case for finding another jump now
-			if (Instructions[Offset].GetJumpOffset != Instructions[Offset + 1 + tempoff].Offset)
+			start:
+            if (Instructions[Offset].GetJumpOffset != Instructions[Offset + 1 + tempoff].Offset)
 			{
 				if (Instructions[Offset + 1 + tempoff].Instruction == Instruction.Nop)
 				{
@@ -432,7 +444,11 @@ namespace Magic_RDR
 		{
 			if (Outerpath.Parent != null)
 			{
-				if (InstructionMap[Outerpath.EndOffset] == Offset)
+                // TODO: unsure what is happening here, sometimes InstructionMap doesn't contain Outerpath.EndOffset?
+                if (!InstructionMap.ContainsKey(Outerpath.EndOffset))
+                    return true;
+
+                if (InstructionMap[Outerpath.EndOffset] == Offset)
 				{
 					return true;
 				}
@@ -823,14 +839,18 @@ namespace Magic_RDR
 							AddInstruction(curoff, new HLInstruction(CodeBlock[Offset], GetArray(1 + CodeBlock[Offset + 1]), curoff));
 							break;
 						case 112: //PushArrayP
-							AddInstruction(curoff, new HLInstruction(CodeBlock[Offset], GetArray(5 + CodeBlock[Offset + 1]), curoff));
-							break;
+                            byte[] size = GetArray(4).ToArray();
+                            if (AppGlobals.Platform == AppGlobals.PlatformEnum.Switch)
+                                Array.Reverse(size);
+                            Offset -= 4;
+                            AddInstruction(curoff, new HLInstruction(CodeBlock[Offset], GetArray(4 + BitConverter.ToInt32(size, 0)), curoff));
+                            break;
 						case 114:
 						case 115:
 						case 116:
 						case 117: AddInstruction(curoff, new HLInstruction(CodeBlock[Offset], GetArray(1), curoff)); break;
 						default:
-							if (CodeBlock[Offset] <= 155)
+							if (CodeBlock[Offset] <= (int)Instruction.MakeVector)
 								AddInstruction(curoff, new HLInstruction(CodeBlock[Offset], curoff));
 							break;
 					}
@@ -863,7 +883,20 @@ namespace Magic_RDR
                 HandleNewPath();
             }
 
-			switch (Instructions[Offset].Instruction)
+            if (ScriptViewerForm.ShowRawDisassembly)
+            {
+                var opcode = Instructions[Offset].Instruction.ToString().PadRight(14, ' ');
+                var line = $"// #{Offset:D3} 0x{Location + Instructions[Offset].Offset:X04} = {opcode} : {((int)Instructions[Offset].Instruction):X2}";
+                
+				foreach (var b in Instructions[Offset]._Operands)
+                {
+                    line += $" {b:X2}";
+                }
+
+                WriteLine(line);
+            }
+
+            switch (Instructions[Offset].Instruction)
 			{
 				case Instruction.Nop:
 					break;
@@ -1223,8 +1256,13 @@ namespace Magic_RDR
 				case Instruction.fPush_5:
 				case Instruction.fPush_6:
 				case Instruction.fPush_7: Stack.Push(Instructions[Offset].GetImmFloatPush); break;
+                case Instruction.MakeVector: Stack.Op_MakeVector(); break;
+                case Instruction.StoreVector:
+                case Instruction.StoreRef: WriteLine(Stack.Op_StoreVectorOrRef()); break;
+                case Instruction.LoadRef: break; // TODO: what does LoadRef actually do?
+                default: WriteLine($"{Instructions[Offset].Instruction}();"); break;
 
-				HandleJump:
+                HandleJump:
 				CheckConditional();
 				break;
 
@@ -1442,11 +1480,6 @@ namespace Magic_RDR
 				try
 				{
 					var ins = Instructions[i];
-					if (ins.IsReturnInstruction)
-					{
-						break;
-					}
-
 					switch (ins.Instruction)
 					{
 						case Instruction.Nop:
@@ -1829,7 +1862,7 @@ namespace Magic_RDR
 						case Instruction.Call2hE:
 						case Instruction.Call2hF:
 						case Instruction.Call2:
-							Function func = GetFunctionFromOffset(ins.GetOperandsAsInt);
+							Function func = GetFunctionFromOffset(ins.GetOperandsAsInt, (int)ins.Instruction);
 							if (!func.preDecodeStarted)
 							{
 								func.PreDecode();

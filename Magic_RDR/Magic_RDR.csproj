@@ -116,6 +116,10 @@
       <HintPath>..\ModelViewer\bin\Debug\ModelViewer.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\x86\Debug\Assemblies\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Pfim">
       <HintPath>bin\x86\Debug\Assemblies\Pfim.dll</HintPath>
       <Private>False</Private>
@@ -436,6 +440,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Scripts\natives.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\script_save.png" />

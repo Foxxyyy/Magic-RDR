@@ -1292,7 +1292,7 @@ namespace Magic_RDR
                 case ".xsf":
                 case ".xtd":
                 case ".xtx":
-                //case ".wsf":
+                case ".wsf":
                 case ".wtd":
                 case ".wtx":
                     return true;

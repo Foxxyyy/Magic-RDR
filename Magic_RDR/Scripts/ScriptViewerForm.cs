@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Magic_RDR.Application;
 using Magic_RDR.RPF;
@@ -14,27 +13,37 @@ namespace Magic_RDR
     public partial class ScriptViewerForm : Form
     {
         private IOReader Reader;
+        private FileEntry FileEntry;
         private string FileName = "";
         private string TempFileName;
 
         public static object ThreadLock;
         public static string DecompiledCode;
+        public static bool ShowRawDisassembly = false;
 
         public ScriptViewerForm(TOCSuperEntry entry)
         {
             InitializeComponent();
+            FileEntry = entry.Entry.AsFile;
+            btnShowRawDisassembly.Checked = ShowRawDisassembly;
+            btnShowNativeNamespaces.Checked = NativeHashDB.ShowNativeNamespace;
+
             ThreadLock = new object();
             Text = string.Format("MagicRDR - Script Viewer [{0}]", entry.Entry.Name);
             FileName = entry.Entry.Name;
 
-            FileEntry file = entry.Entry.AsFile;
-            RPFFile.RPFIO.Position = file.GetOffset();
+            RPFFile.RPFIO.Position = FileEntry.GetOffset();
 
-            byte[] fileData = ResourceUtils.ResourceInfo.GetDataFromResourceBytes(RPFFile.RPFIO.ReadBytes(file.SizeInArchive));
+            byte[] fileData = ResourceUtils.ResourceInfo.GetDataFromResourceBytes(RPFFile.RPFIO.ReadBytes(FileEntry.SizeInArchive));
             Reader = new IOReader(new MemoryStream(fileData), (AppGlobals.Platform == AppGlobals.PlatformEnum.Switch) ? IOReader.Endian.Little : IOReader.Endian.Big);
-            Reader.BaseStream.Seek(file.FlagInfo.RSC85_ObjectStart, SeekOrigin.Begin);
 
-            ScriptFile script = new ScriptFile(Reader, file);
+            InitForm();
+        }
+
+        void InitForm()
+        {
+            Reader.BaseStream.Seek(FileEntry.FlagInfo.RSC85_ObjectStart, SeekOrigin.Begin);
+            ScriptFile script = new ScriptFile(Reader, FileEntry);
 
             try
             {
@@ -95,6 +104,24 @@ namespace Magic_RDR
             try { textBox.CloseBindingFile(); }
             catch { }
         }
+
+        private void btnShowRawDisassembly_Click(object sender, EventArgs e)
+        {
+            ShowRawDisassembly = !ShowRawDisassembly;
+            btnShowRawDisassembly.Checked = ShowRawDisassembly;
+            InitForm();
+        }
+
+        private void btnShowNativeNamespaces_Click(object sender, EventArgs e)
+        {
+            NativeHashDB.ShowNativeNamespace = !NativeHashDB.ShowNativeNamespace;
+            btnShowNativeNamespaces.Checked = NativeHashDB.ShowNativeNamespace;
+
+            var curScroll = textBox.VerticalScroll.Value;
+            InitForm();
+            textBox.VerticalScroll.Value = curScroll;
+            textBox.UpdateScrollbars();
+        }
     }
 
     public class ScriptFile
@@ -104,7 +131,7 @@ namespace Magic_RDR
         private int ParameterCount, StaticCount, NativeCount;
         private int StaticPointer;
         private int[] CodeTablePointers;
-        private int PageCount, Offset;
+        private int PageCount;
 
         public static int ReturnType, Attempts;
         public static bool OpcodeReturn;
@@ -150,7 +177,7 @@ namespace Magic_RDR
             for (int i = 0; i < PageCount; i++)
             {
                 Reader.BaseStream.Seek(CodeTablePointers[i], SeekOrigin.Begin);
-                long Tablesize = Reader.BaseStream.Position + Reader.GetPageLengthAtPage(CodeTablePointers, CodeLength, i);
+                long Tablesize = Reader.GetPageLengthAtPage(CodeTablePointers, CodeLength, i);
                 
                 byte[] working = new byte[Tablesize];
                 Reader.BaseStream.Read(working, 0, (int)Tablesize);
@@ -163,7 +190,7 @@ namespace Magic_RDR
             FunctionLoc = new Dictionary<int, FunctionName>();
             GetFunctions();
 
-            for (int i = 0; i < Functions.Count - 1; i++)
+            for (int i = 0; i < Functions.Count; i++)
             {
                 try
                 {
@@ -176,7 +203,7 @@ namespace Magic_RDR
             }
 
             Statics.CheckVariables();
-            for (int i = 0; i < Functions.Count - 1; i++)
+            for (int i = 0; i < Functions.Count; i++)
             {
                 try
                 {
@@ -239,18 +266,20 @@ namespace Magic_RDR
         void GetFunctions()
         {
             int returnpos = -3;
-            while (Offset < CodeTable.Count)
+            int offset = 0;
+
+            while (offset < CodeTable.Count)
             {
-                switch (CodeTable[Offset])
+                switch (CodeTable[offset])
                 {
-                    case 37: AdvancePosition(1); break;
-                    case 38: AdvancePosition(2); break;
-                    case 39: AdvancePosition(3); break;
-                    case 40: AdvancePosition(4); break;
-                    case 41: AdvancePosition(4); break;
-                    case 44: AdvancePosition(2); break;
-                    case 45: try { AddFunction(Offset, returnpos + 3); Attempts++; AdvancePosition(CodeTable[Offset + 4] + 4); } catch { } break;
-                    case 46: returnpos = Offset; AdvancePosition(2); break;
+                    case 37: offset += 1; break;
+                    case 38: offset += 2; break;
+                    case 39: offset += 3; break;
+                    case 40: offset += 4; break;
+                    case 41: offset += 4; break;
+                    case 44: offset += 2; break;
+                    case 45: try { AddFunction(offset, returnpos + 3); Attempts++; offset += CodeTable[offset + 4] + 4; } catch { } break;
+                    case 46: returnpos = offset; offset += 2; break;
                     case 52:
                     case 53:
                     case 54:
@@ -263,7 +292,7 @@ namespace Magic_RDR
                     case 61:
                     case 62:
                     case 63:
-                    case 64: AdvancePosition(1); break;
+                    case 64: offset += 1; break;
                     case 65:
                     case 66:
                     case 67:
@@ -304,18 +333,18 @@ namespace Magic_RDR
                     case 102:
                     case 103:
                     case 104:
-                    case 105: AdvancePosition(2); break;
+                    case 105: offset += 2; break;
                     case 106:
                     case 107:
                     case 108:
-                    case 109: AdvancePosition(3); break;
-                    case 110: AdvancePosition(1 + CodeTable[Offset + 1] * 6); break;
-                    case 111: AdvancePosition(1 + CodeTable[Offset + 1]); break;
-                    case 112: AdvancePosition(5 + CodeTable[Offset + 1]); break;
+                    case 109: offset += 3; break;
+                    case 110: offset += 1 + CodeTable[offset += + 1] * 6; break;
+                    case 111: offset += 1 + CodeTable[offset += + 1]; break;
+                    case 112: offset += 5 + CodeTable[offset += + 1]; break;
                     case 114:
                     case 115:
                     case 116:
-                    case 117: AdvancePosition(1); break;
+                    case 117: offset += 1; break;
                     case 122:
                     case 123:
                     case 124:
@@ -331,9 +360,9 @@ namespace Magic_RDR
                     case 134:
                     case 135:
                     case 136:
-                    case 137: returnpos = Offset; break;
+                    case 137: returnpos = offset; break;
                 }
-                AdvancePosition(1);
+                offset += 1;
             }
             GetFunctionCode();
         }
@@ -365,8 +394,8 @@ namespace Magic_RDR
             if (name.StartsWith("0~"))
                 name = name.Replace("0~", "static ");
 
-            int pcount = CodeTable[Offset + 1];
-            int tmp1 = CodeTable[Offset + 2], tmp2 = CodeTable[Offset + 3];
+            int pcount = CodeTable[start1 + 1];
+            int tmp1 = CodeTable[start1 + 2], tmp2 = CodeTable[start1 + 3];
             int vcount = (tmp1 << 0x8) | tmp2;
 
             if (vcount < 0)
@@ -470,19 +499,19 @@ namespace Magic_RDR
 
         public void GetFunctionCode()
         {
-            for (int i = 0; i < Functions.Count - 1; i++)
+            for (int i = 0; i < Functions.Count; i++)
             {
                 int start = Functions[i].MaxLocation;
-                int end = Functions[i + 1].Location;
+                int end = CodeTable.Count;
+
+                if (i + 1 < Functions.Count)
+                    end = Functions[i + 1].Location;
 
                 if (end > start)
                     Functions[i].CodeBlock = CodeTable.GetRange(start, end - start);
                 else
                     Functions[i].CodeBlock = CodeTable.GetRange(start, start - end);
             }
-            int startLast = Functions[Functions.Count - 1].MaxLocation;
-            int endLast = CodeTable.Count - Functions[Functions.Count - 1].MaxLocation;
-            Functions[Functions.Count - 1].CodeBlock = CodeTable.GetRange(startLast, endLast);
         }
 
         public bool IsReturnInstruction(int temp)
@@ -519,11 +548,6 @@ namespace Magic_RDR
                     break;
             }
             return CodeTable[temp] == 46 || (CodeTable[temp] > 121 && CodeTable[temp] < 138);
-        }
-
-        void AdvancePosition(int position)
-        {
-            Offset += position;
         }
     }
 }

@@ -248,11 +248,6 @@ namespace Magic_RDR.Viewers
                 {
                     return;
                 }
-                if (entry.Entry.Name.EndsWith(".wsf"))
-                {
-                    this.saveButton.Enabled = false;
-                    this.importButton.Enabled = false;
-                }
                 this.multiImportButton.Enabled = false;
                 Reader = new IOReader(new MemoryStream(data), AppGlobals.Platform == AppGlobals.PlatformEnum.Switch ? IOReader.Endian.Little : IOReader.Endian.Big);
                 Reader.BaseStream.Seek(file.FlagInfo.RSC85_ObjectStart, SeekOrigin.Begin);
@@ -422,12 +417,13 @@ namespace Magic_RDR.Viewers
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                int index = listView.FocusedItem.Index;
+                string currentName = listView.FocusedItem.Text;
                 var texInfos = FileFlags == 0 ? XTD_TextureDictionary.TexInfos : FileFlags == 1 ? new TextureInfo[] { XTX_TextureDictionary.TexInfos } : XSF_TextureResource.TexInfos;
 
                 try
                 {
-                    var largerTexture = InjectDDS(Reader, dialog.FileName, texInfos[index], Writer);
+                    var textureToReplace = texInfos.FirstOrDefault(t => t != null && t.TextureName == currentName);
+                    var largerTexture = InjectDDS(Reader, dialog.FileName, textureToReplace, Writer);
                     //LargerTextures.Add((largerTexture.Item1, largerTexture.Item2));
 
                     MainForm.HasJustEditedTexture = true;
@@ -631,10 +627,13 @@ namespace Magic_RDR.Viewers
             {
                 if (dialog.FileName.EndsWith(".dds"))
                 {
+                    string currentName = listView.FocusedItem.Text;
                     var texInfos = FileFlags == 0 ? XTD_TextureDictionary.TexInfos : FileFlags == 1 ? new TextureInfo[] { XTX_TextureDictionary.TexInfos } : XSF_TextureResource.TexInfos;
+                    
                     try
                     {
-                        SaveDDS(Reader, dialog.FileName, texInfos[index]);
+                        var textureToExport = texInfos.FirstOrDefault(t => t != null && t.TextureName == currentName);
+                        SaveDDS(Reader, dialog.FileName, textureToExport);
                         MessageBox.Show("Successfully exported texture", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)

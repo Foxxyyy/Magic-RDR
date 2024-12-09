@@ -6,15 +6,16 @@ namespace Magic_RDR
 	class NativeParamInfo
 	{
 		Dictionary<uint, Tuple<Stack.DataType, Stack.DataType[]>> Natives;
+        private static object _threadLock = new object();
 
-		public NativeParamInfo()
+        public NativeParamInfo()
 		{
 			Natives = new Dictionary<uint, Tuple<Stack.DataType, Stack.DataType[]>>();
 		}
 
 		public void UpdateNative(uint hash, Stack.DataType returns, params Stack.DataType[] param)
 		{
-			lock (ScriptViewerForm.ThreadLock)
+			lock (_threadLock)
 			{
 				if (!Natives.ContainsKey(hash))
 				{
@@ -83,19 +84,9 @@ namespace Magic_RDR
 
 			string native, nativetype = "";
 			bool isKnown = false;
+            native = NativeHashDB.GetName(hash);
 
-			if (NativeFile.HashDB.ContainsKey(hash))
-			{
-				native = NativeFile.HashDB[hash].ToUpper();
-			}
-			else
-			{
-				native = hash.ToString("X");
-				while (native.Length < 8) native = "0" + native;
-				native = "UNK_0x" + native;
-			}
-
-			string dec = (isKnown ? nativetype : Types.gettype(Natives[hash].Item1).returntype) + native + "(";
+            string dec = (isKnown ? nativetype : Types.gettype(Natives[hash].Item1).returntype) + native + "(";
 			int max = Natives[hash].Item2.Length;
 			
 			if (max == 0)

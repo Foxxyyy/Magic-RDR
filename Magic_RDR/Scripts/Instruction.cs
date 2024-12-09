@@ -8,7 +8,7 @@ namespace Magic_RDR
 	{
 		private int _Offset;
 		private Instruction _Instruction;
-		private byte[] _Operands;
+		public readonly byte[] _Operands;
 
 		public HLInstruction(byte instruction, IEnumerable<byte> operands, int offset)
 		{
@@ -452,6 +452,29 @@ namespace Magic_RDR
 		fPush_4, //152
 		fPush_5, //153
 		fPush_6, //154
-		fPush_7 //155
-	}
+		fPush_7, //155
+        PatchRet, //156
+        PatchTrap0, //157
+        PatchTrap1, //158
+        PatchTrap2, //159
+        PatchTrap3, //160
+        PatchTrap4, //161
+        PatchTrap5, //162
+        PatchTrap6, //163
+        PatchTrap7, //164
+        PatchTrap8, //165
+        PatchTrap9, //166
+        PatchTrapA, //167
+        PatchTrapB, //168
+        PatchTrapC, //169
+        PatchTrapD, //170
+        PatchTrapE, //171
+        PatchTrapF, //172
+        CallPatch, //173
+        CallOutOfPatch, //174
+        LoadRef, //175
+        StoreRef, //176
+        StoreVector, //177
+        MakeVector //178
+    }
 }
