@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 
@@ -31,7 +31,7 @@ public static class AppGlobals
                 break;
             case PlatformEnum.Switch:
                 PlatformChar = (char)119;
-                PlatformString = "Nintendo Switch";
+                PlatformString = "Nintendo Switch - PC";
                 break;
         }
     }

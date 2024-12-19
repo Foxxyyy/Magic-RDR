@@ -1,9 +1,10 @@
-﻿using Magic_RDR.Application;
+using Magic_RDR.Application;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using static Magic_RDR.RPF6.RPF6TOC;
@@ -142,20 +143,22 @@ namespace Magic_RDR.Viewers
                 return;
 
             string wavFileName = listView.SelectedItems[0].Text;
-            foreach (string path in wavPath)
+			wavFileName = wavFileName.Substring(0, wavFileName.IndexOf(' '));
+
+			foreach (string path in wavPath)
             {
                 if (path.Contains(wavFileName))
-                    wavFileName = path;
+				{
+					wavFileName = path.Substring(0, path.IndexOf(' '));
+					break;
+				}
             }
+
             if (!File.Exists(wavFileName))
             {
                 return;
             }
 
-            if (AppGlobals.Platform == AppGlobals.PlatformEnum.Switch)
-            {
-                wavFileName = wavFileName.Substring(0, wavPath[0].IndexOf(" "));
-            }
             audioPlayer.URL = wavFileName;
             audioPlayer.Ctlcontrols.play();
         }
@@ -174,12 +177,15 @@ namespace Magic_RDR.Viewers
             else
                 currentAudioFile = listView.SelectedItems[0].Text;
 
-            foreach (string file in wavPath)
+			currentAudioFile = currentAudioFile.Substring(0, currentAudioFile.IndexOf(' '));
+
+			foreach (string file in wavPath)
             {
-                if (File.Exists(file) && file.Contains(currentAudioFile))
-                {
-                    currentAudioFile = file;
-                }
+                if (file.Contains(currentAudioFile))
+				{
+                    currentAudioFile = file.Substring(0, file.IndexOf(' '));
+					break;
+				}
             }
 
             if (!File.Exists(currentAudioFile))
@@ -188,17 +194,20 @@ namespace Magic_RDR.Viewers
                 return;
             }
 
-            SaveFileDialog dialog = new SaveFileDialog();
-            dialog.Filter = "WAV Audio File (*.wav)|*.wav";
-            
-            if (dialog.ShowDialog() == DialogResult.OK)
+			SaveFileDialog dialog = new SaveFileDialog
+			{
+				Filter = "WAV Audio File (*.wav)|*.wav",
+				FileName = Path.GetFileNameWithoutExtension(currentAudioFile)
+			};
+
+			if (dialog.ShowDialog() == DialogResult.OK)
             {
                 if (File.Exists(dialog.FileName))
                 {
                     File.Delete(dialog.FileName);
                 }
                 File.Copy(currentAudioFile, dialog.FileName);
-                MessageBox.Show("Successfully export file !", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Successfully exported WAV !", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -210,18 +219,21 @@ namespace Magic_RDR.Viewers
                 return;
             }
 
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
-            dialog.Description = "Select a destination to export audio files";
-            dialog.ShowNewFolderButton = true;
+			FolderBrowserDialog dialog = new FolderBrowserDialog
+			{
+				Description = "Select a destination to export audio files",
+				ShowNewFolderButton = true
+			};
 
-            if (dialog.ShowDialog() == DialogResult.OK)
+			if (dialog.ShowDialog() == DialogResult.OK)
             {
                 int count = 0;
                 foreach (string file in wavPath)
                 {
-                    if (File.Exists(file))
+					var path = file.Substring(0, file.IndexOf(' '));
+					if (File.Exists(path))
                     {
-                        File.Copy(file, dialog.SelectedPath + "\\\\" + Path.GetFileName(file));
+                        File.Copy(path, dialog.SelectedPath + "\\\\" + Path.GetFileName(path));
                         count++;
                     }
                 }
@@ -231,12 +243,12 @@ namespace Magic_RDR.Viewers
 
         #endregion
 
-        private AwcChunkType Tag(string s)
+        private new AwcChunkType Tag(string s)
         {
             return Tag(DataUtils.GetHash(s));
         }
 
-        private AwcChunkType Tag(uint hash)
+        private new AwcChunkType Tag(uint hash)
         {
             return (AwcChunkType)(hash & 0xff);
         }
@@ -276,10 +288,13 @@ namespace Magic_RDR.Viewers
                 {
                     offset += 0x2 * streamsCount;
                 }
-                uint layer = reader.ReadUInt32();
+
+				reader.BaseStream.Position = offset;
+				uint layer = reader.ReadUInt32();
                 bool isMusic = (layer & 0x1FFFFFFF) == 0x0;
-                reader.BaseStream.Seek(offset, SeekOrigin.Begin);
-            }
+
+                reader.BaseStream.Position = offset;
+			}
 
             List<StreamInfo> info = new List<StreamInfo>();
             List<string> wavPaths = new List<string>();
@@ -300,232 +315,260 @@ namespace Magic_RDR.Viewers
                 }
             }
 
-            bool firstInfo = true;
-            for (int i = 0; i < info.Count; i++)
-            {
-                if (info[i].TagsCount > 1 && i != 0)
-                    firstInfo = false;
-            }
-
             if (!multiChannel)
             {
                 var chunkList = new List<FormatChunk>();
                 var chunkFormatList = new List<ChannelsInfoChunkHeader>();
 
-                for (int i = 0; i < streamsCount; i++)
-                {
-                    try
-                    {
-                        if (streamsChunks.TryGetValue(info[i].Id, out Dictionary<AwcChunkType, ChunkInfo> codecInfo))
-                        {
-                            codecInfo.TryGetValue(Tag("data"), out ChunkInfo chunkDataInfo);
-                            codecInfo.TryGetValue(Tag("streamformat"), out ChunkInfo chunkStreamFormatInfo);
-                            codecInfo.TryGetValue(Tag("format"), out ChunkInfo chunkFormatInfo);
+				for (int i = 0; i < streamsCount; i++)
+				{
+					if (streamsChunks.TryGetValue(info[i].Id, out Dictionary<AwcChunkType, ChunkInfo> codecInfo))
+					{
+						codecInfo.TryGetValue(Tag("data"), out ChunkInfo chunkDataInfo);
+						codecInfo.TryGetValue(Tag("streamformat"), out ChunkInfo chunkStreamFormatInfo);
+						codecInfo.TryGetValue(Tag("format"), out ChunkInfo chunkFormatInfo);
 
-                            //Format
-                            FormatChunk chunk = null;
-                            if (chunkFormatInfo != null)
-                            {
-                                reader.BaseStream.Position = chunkFormatInfo.Offset;
-                                chunk = new FormatChunk(reader);
-                                chunkList.Add(chunk);
-                            }
+						//Format
+						FormatChunk chunk = null;
+						if (chunkFormatInfo != null)
+						{
+							reader.BaseStream.Position = chunkFormatInfo.Offset;
+							chunk = new FormatChunk(reader);
+							chunkList.Add(chunk);
+						}
 
-                            //StreamFormat
-                            ChannelsInfoChunkHeader chunkFormat = null;
-                            if (chunkStreamFormatInfo != null)
-                            {
-                                reader.BaseStream.Position = chunkStreamFormatInfo.Offset;
-                                chunkFormat = new ChannelsInfoChunkHeader(reader);
-                                chunkFormatList.Add(chunkFormat);
-                            }
+						//StreamFormat
+						ChannelsInfoChunkHeader chunkFormat = null;
+						if (chunkStreamFormatInfo != null)
+						{
+							reader.BaseStream.Position = chunkStreamFormatInfo.Offset;
+							chunkFormat = new ChannelsInfoChunkHeader(reader);
+							chunkFormatList.Add(chunkFormat);
+						}
 
-                            //Data
-                            if (chunkDataInfo != null && (chunk != null || chunkFormat != null))
-                            {
-                                if (info[i].Id == 0 && !firstInfo)
-                                    continue;
+						//Data
+						if (chunkDataInfo != null && (chunk != null || chunkFormat != null))
+						{
+							reader.BaseStream.Position = chunkDataInfo.Offset;
+							byte[] data = new byte[chunkDataInfo.Size];
+							if (chunkDataInfo.Tag == AwcChunkType.data)
+							{
+								if (chunk.Codec == AwcCodecType.OPUS)
+								{		
+									
+								}
+								else if (chunk.Codec == AwcCodecType.MSADPCM)
+								{
+									var header = reader.ReadBytes(0x4A);
+									var brHeader = new BinaryReader(new MemoryStream(header));
 
-                                reader.BaseStream.Position = chunkDataInfo.Offset;
-                                byte[] data = new byte[chunkDataInfo.Size];
-                                if (chunkDataInfo.Tag == AwcChunkType.data)
-                                {
-                                    var header = reader.ReadBytes(0x60);
-                                    data = reader.ReadBytes(chunkDataInfo.Size - 0x60);
+									brHeader.BaseStream.Position = 0x18;
+									var samplesHeader = brHeader.ReadInt32();
 
-                                    if (chunk != null) data = DecodeADPCM(data, (int)chunk.Samples);
-                                    else data = DecodeADPCM(data, (int)chunkFormat.Channels[0].Samples);
+									brHeader.BaseStream.Position = 0x20;
+									var blockSize = brHeader.ReadInt16();
 
-                                    string hexString = info[i].Id.ToString("X");
-                                    string desiredFileName = string.Format("0x{0}.wav", hexString.Length == 7 ? ("0" + hexString) : hexString);
-                                    if (desiredFileName == "0x0.wav")
-                                    {
-                                        desiredFileName = entryName.Replace(".awc", ".wav");
-                                    }
+									var audioSize = reader.ReadInt32();
+									data = reader.ReadBytes(audioSize);
 
-                                    string tempFile = Path.Combine(Path.GetTempPath(), desiredFileName);
-                                    using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                                    {
-                                        if (chunk != null)
-                                            WAVFromPCM(new MemoryStream(data), fs, 1, chunk.SamplesPerSecond, 16, (int)chunk.Samples);
-                                        else
-                                            WAVFromPCM(new MemoryStream(data), fs, 1, chunkFormat.Channels[0].SamplesPerSecond, 16, (int)chunkFormat.Channels[0].Samples);
-                                    }
-                                    wavPaths.Add(tempFile + " - " + (chunk != null ? chunk.SamplesPerSecond : chunkFormat.Channels[0].SamplesPerSecond) + " Hz");
-                                }
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        
-                    }
-                }
+									int waveSize = (int)(reader.BaseStream.Position - chunkDataInfo.Offset);
+									reader.BaseStream.Position = chunkDataInfo.Offset;
+									var waveData = reader.ReadBytes(waveSize);
+
+									int samplesToDo = (blockSize - 7) * 2 + 2;
+									int samples_filled = 0;
+									var decodedAudio = new List<byte>();
+
+									while (samples_filled < chunk.Samples)
+									{
+										var chunkData = DecodeMSADPCMMono(data, 1, samples_filled, samplesToDo, 0, blockSize);
+										decodedAudio.AddRange(chunkData);
+										samples_filled += samplesToDo;
+									}
+
+									string hexString = info[i].Id.ToString("X");
+									string desiredFileName = string.Format("0x{0}.wav", hexString.Length == 7 ? ("0" + hexString) : hexString);
+									if (desiredFileName == "0x0.wav")
+									{
+										desiredFileName = entryName.Replace(".awc", ".wav");
+									}
+
+									string tempFile = Path.Combine(Path.GetTempPath(), desiredFileName);
+									using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+									{
+										if (chunk != null)
+											WAVFromPCM(new MemoryStream(decodedAudio.ToArray()), fs, 1, samplesHeader, 16);
+										else
+											WAVFromPCM(new MemoryStream(decodedAudio.ToArray()), fs, 1, samplesHeader, 16);
+
+									}
+									wavPaths.Add(tempFile + " - " + samplesHeader + " Hz");
+								}
+							}
+						}
+					}
+				}
             }
             return wavPaths.ToArray();
         }
 
-        public struct AdpcmState
-        {
-            public short valprev;
-            public byte index;
-        }
+		private static readonly short[,] msadpcm_coefs =
+		{
+			{ 256, 0 },
+			{ 512, -256 },
+			{ 0, 0 },
+			{ 192, 64 },
+			{ 240, 0 },
+			{ 460, -208 },
+			{ 392, -232 }
+		};
 
-        private static int[] ima_index_table =
-        {
-            -1, -1, -1, -1, 2, 4, 6, 8,
-            -1, -1, -1, -1, 2, 4, 6, 8
-        };
+		/* AdaptionTable */
+		private static readonly short[] msadpcm_steps =
+		{
+			230, 230, 230, 230,
+			307, 409, 512, 614,
+			768, 614, 512, 409,
+			307, 230, 230, 230
+		};
 
-        private static short[] ima_step_table =
-        {
-            7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
-            19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
-            50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
-            130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
-            337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
-            876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
-            2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
-            5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
-            15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
-        };
+		public short[] adpcmCoef = new short[16];
+		public short adpcmHistory1_16 = 0;
+		public short adpcmHistory2_16 = 0;
+		public int adpcmScale = 0;
 
-        private static int clip(int value, int min, int max)
-        {
-            if (value < min) return min;
-            if (value > max) return max;
-            return value;
-        }
+		public int Clamp16(int val)
+		{
+			if (val > 32767) return 32767;
+			else if (val < -32768) return -32768;
+			else return val;
+		}
 
-        public byte[] DecodeADPCM(byte[] data, int sampleCount)
-        {
-            byte[] dataPCM = new byte[data.Length * 4];
-            int predictor = 0, stepIndex = 0;
-            int readingOffset = 0, writingOffset = 0, bytesInBlock = 0;
+		private void WriteShortToByteArray(byte[] buffer, int index, short value)
+		{
+			buffer[index] = (byte)(value & 0xFF);
+			buffer[index + 1] = (byte)((value >> 8) & 0xFF);
+		}
 
-            void parseNibble(byte nibble)
-            {
-                var step = ima_step_table[stepIndex];
-                int diff = ((((nibble & 7) << 1) + 1) * step) >> 3;
-                if ((nibble & 8) != 0) diff = -diff;
-                predictor = predictor + diff;
-                stepIndex = clip(stepIndex + ima_index_table[nibble], 0, 88);
-                int samplePCM = clip(predictor, -32768, 32767);
+		public byte[] DecodeMSADPCMMono(byte[] data, int channelSpacing, int firstSample, int samplesToDo, int channel, int bytesPerFrame)
+		{
+			var br = new BinaryReader(new MemoryStream(data));
+			int framesIn;
+			int samplesPerFrame = (bytesPerFrame - 7) * 2 + 2;
+			bool isShr = true;
 
-                dataPCM[writingOffset] = (byte)(samplePCM & 0xFF);
-                dataPCM[writingOffset + 1] = (byte)((samplePCM >> 8) & 0xFF);
-                writingOffset += 2;
-            }
+			framesIn = firstSample / samplesPerFrame;
+			br.BaseStream.Position = framesIn * bytesPerFrame;
+			firstSample %= samplesPerFrame;
 
-            while ((readingOffset < data.Length) && (sampleCount > 0))
-            {
-                if (bytesInBlock == 0)
-                {
-                    stepIndex = clip(data[readingOffset], 0, 88);
-                    predictor = BitConverter.ToInt16(data, readingOffset + 2);
-                    bytesInBlock = 2044;
-                    readingOffset += 4;
-                }
-                else
-                {
-                    parseNibble((byte)(data[readingOffset] & 0x0F));
-                    parseNibble((byte)((data[readingOffset] >> 4) & 0x0F));
-                    bytesInBlock--;
-                    sampleCount -= 2;
-                    readingOffset++;
-                }
-            }
-            return dataPCM;
-        }
+			int index = framesIn * bytesPerFrame;
+			if (index >= data.Length)
+			{
+				index = (framesIn - 1) * bytesPerFrame;
+			}
 
-        public void WAVFromPCM(Stream input, Stream output, short channels, int samplesPerSec, int bitsPerSample, int samples = 0)
+			if (firstSample == 0)
+			{
+				int coefIndex = data[index] & 0x07;
+				adpcmCoef[0] = msadpcm_coefs[coefIndex, 0];
+				adpcmCoef[1] = msadpcm_coefs[coefIndex, 1];
+				adpcmScale = BitConverter.ToInt16(data, index + 1);
+				adpcmHistory1_16 = BitConverter.ToInt16(data, index + 3);
+				adpcmHistory2_16 = BitConverter.ToInt16(data, index + 5);
+			}
+
+			byte[] outBuffer = new byte[samplesToDo * 2 * channelSpacing];
+			int outIndex = 0;
+
+			if (firstSample == 0 && samplesToDo > 0)
+			{
+				WriteShortToByteArray(outBuffer, outIndex, adpcmHistory2_16);
+				outIndex += channelSpacing * 2;
+				firstSample++;
+				samplesToDo--;
+			}
+
+			if (firstSample == 1 && samplesToDo > 0)
+			{
+				WriteShortToByteArray(outBuffer, outIndex, adpcmHistory1_16);
+				outIndex += channelSpacing * 2;
+				firstSample++;
+				samplesToDo--;
+			}
+
+			for (int i = firstSample; i < firstSample + samplesToDo; i++)
+			{
+				byte currentByte = data[index + 7 + (i - 2) / 2];
+				int shift = (i % 2 == 0) ? 4 : 0;
+				short decodedSample = isShr ? MSADPCMExpandNibbleShr(currentByte, shift) : MSADPCMExpandNibbleDiv(currentByte, shift);
+
+				WriteShortToByteArray(outBuffer, outIndex, decodedSample);
+				outIndex += channelSpacing * 2;
+			}
+			return outBuffer;
+		}
+
+		private short MSADPCMExpandNibbleShr(byte currentByte, int shift)
+		{
+			int code = (currentByte >> shift) & 0x0F;
+			if ((code & 0x08) != 0) code -= 16;
+
+			int predicted = adpcmHistory1_16 * adpcmCoef[0] + adpcmHistory2_16 * adpcmCoef[1];
+			predicted >>= 8;
+			predicted += code * adpcmScale;
+			predicted = Clamp16(predicted);
+
+			adpcmHistory2_16 = adpcmHistory1_16;
+			adpcmHistory1_16 = (short)predicted;
+
+			adpcmScale = (msadpcm_steps[code & 0x0F] * adpcmScale) >> 8;
+			if (adpcmScale < 16) adpcmScale = 16;
+
+			return (short)predicted;
+		}
+
+		private short MSADPCMExpandNibbleDiv(byte currentByte, int shift)
+		{
+			int code = (currentByte >> shift) & 0x0F;
+			if ((code & 0x08) != 0) code -= 16;
+
+			int predicted = adpcmHistory1_16 * adpcmCoef[0] + adpcmHistory2_16 * adpcmCoef[1];
+			predicted /= 256;
+			predicted += code * adpcmScale;
+			predicted = Clamp16(predicted);
+
+			adpcmHistory2_16 = adpcmHistory1_16;
+			adpcmHistory1_16 = (short)predicted;
+
+			adpcmScale = (msadpcm_steps[code & 0x0F] * adpcmScale) / 256;
+			if (adpcmScale < 16) adpcmScale = 16;
+
+			return (short)predicted;
+		}
+
+        public void WAVFromPCM(Stream input, Stream output, short channels, int samplesPerSec, int bitsPerSample)
         {
             short sample_size = (short)((bitsPerSample / 8) * channels);
-
             using (BinaryWriter writer = new BinaryWriter(output))
             {
                 writer.Write(new char[] { 'R', 'I', 'F', 'F' });
-                writer.Write((int)0); // Skip size of wave file
+                writer.Write((int)input.Length + 36);
                 writer.Write(new char[] { 'W', 'A', 'V', 'E' });
                 writer.Write(new char[] { 'f', 'm', 't', ' ' });
-                writer.Write((int)16); // Size of header
-                writer.Write((short)1); // Format tag - PCM
+                writer.Write((int)16); //Size of header
+                writer.Write((short)1); //Format tag - PCM
                 writer.Write(channels);
                 writer.Write(samplesPerSec);
-                writer.Write((int)(sample_size * samplesPerSec)); // average bytes per sec
-                writer.Write(sample_size); // full sample size..
+                writer.Write((int)(sample_size * samplesPerSec)); //average bytes per sec
+                writer.Write(sample_size); //full sample size..
                 writer.Write((short)bitsPerSample);
                 writer.Write(new char[] { 'd', 'a', 't', 'a' });
-                writer.Write((int)0); // Skip size of data
+                writer.Write((int)input.Length); //Skip size of data
 
-                if (samples != 0)
-                {
-                    int count = this.CopyToCount(input, output, samples * sample_size);
-                    if (count != samples * sample_size)
-                    {
-                        // Check output size
-                        //throw new Exception("Invalid WAV size");
-                    }
-                }
-                else
-                {
-                    // Write the pcm
-                    input.CopyTo(output);
-                }
-
-                // Write the size
-                output.Seek(4, SeekOrigin.Begin);
-                writer.Write((int)(output.Length - 8));
-
-                // Write the size
-                output.Seek(40, SeekOrigin.Begin);
-                writer.Write((int)(output.Length - 44));
+				var audioData = new byte[input.Length];
+				input.Read(audioData, 0, (int)input.Length);
+				writer.Write(audioData);
             }
-        }
-
-        public int CopyToCount(Stream stream, Stream output, int count)
-        {
-            byte[] buffer = new byte[32768];
-            int start_count = count;
-            int read = buffer.Length;
-
-            if (read > count)
-            {
-                read = count;
-            }
-
-            while (read > 0 && (read = stream.Read(buffer, 0, read)) > 0)
-            {
-                output.Write(buffer, 0, read);
-                count -= read;
-                read = buffer.Length;
-
-                if (read > count)
-                {
-                    read = count;
-                }
-            }
-            return start_count - count;
         }
     }
 
@@ -576,18 +619,21 @@ namespace Magic_RDR.Viewers
     public enum AwcCodecType
     {
         PCM_16BIT_LITTLE_ENDIAN = 0, //Max Payne 3 PC
-        PCM_16BIT_BIG_ENDIAN = 1,
+        PCM_16BIT_BIG_ENDIAN = 1, //PC & PS3 sfx, rarely
         PCM_32BIT_LITTLE_ENDIAN = 2,
         PCM_32BIT_BIG_ENDIAN = 3,
         ADPCM = 4, //IMA PC
         XMA2 = 5, //Xbox 360
         XWMA = 6, //Xbox 360
-        MP3 = 7, //PS3
-        OGG = 8, //PC only
+        MPEG = 7, //PS3
+        VORBIS = 8, //PC only, RDR2
         AAC = 9, //PC only
         WMA = 10, //PC only
-        ATRAC9 = 11, //Orbis
-        UNKNOWN = 12
+        DSP_ADPCM_SFX = 12, //Nintendo Switch
+		OPUS = 13,
+		ATRAC9 = 15, //PS4
+		DSP_ADPCM = 16, //Nintendo Switch
+		MSADPCM = 17
     }
 
     public class FormatChunk
@@ -654,7 +700,7 @@ namespace Magic_RDR.Viewers
 
     public class ChannelsInfoChunkItem
     {
-        public int Id;
+        public uint Hash;
         public uint Samples; //Big number
         public ushort Headroom;
         public ushort SamplesPerSecond;
@@ -664,7 +710,7 @@ namespace Magic_RDR.Viewers
 
         public ChannelsInfoChunkItem(IOReader reader)
         {
-            Id = reader.ReadInt32();
+			Hash = reader.ReadUInt32();
             Samples = reader.ReadUInt32();
             Headroom = reader.ReadUInt16();
             SamplesPerSecond = reader.ReadUInt16();
@@ -673,4 +719,45 @@ namespace Magic_RDR.Viewers
             unknownWord2 = reader.ReadUInt16();
         }
     }
+
+	public class OpusDecoderWrapper
+	{
+		[DllImport("Assemblies/opus.dll", CallingConvention = CallingConvention.Cdecl)]
+		public static extern IntPtr opus_decoder_create(int Fs, int channels, out int error);
+
+		[DllImport("Assemblies/opus.dll", CallingConvention = CallingConvention.Cdecl)]
+		public static extern int opus_decode(IntPtr decoder, byte[] input, int inputLength, short[] output, int frameSize, int decodeFec);
+
+		[DllImport("Assemblies/opus.dll", CallingConvention = CallingConvention.Cdecl)]
+		public static extern void opus_decoder_destroy(IntPtr decoder);
+
+		public static void DecodeOpus(byte[] opusData, int sampleRate, int channels, int frameSize)
+		{
+			var decoder = opus_decoder_create(sampleRate, channels, out int error);
+			if (error != 0)
+			{
+				Debug.WriteLine($"Failed to create Opus decoder: {error}");
+				return;
+			}
+
+			try
+			{
+				var pcmSamples = new short[frameSize * channels];
+				var decodedSamples = opus_decode(decoder, opusData, opusData.Length, pcmSamples, frameSize, 0);
+
+				if (decodedSamples < 0)
+				{
+					Debug.WriteLine($"Decoding error: {decodedSamples}");
+				}
+				else
+				{
+					Debug.WriteLine($"Decoded {decodedSamples} samples.");
+				}
+			}
+			finally
+			{
+				opus_decoder_destroy(decoder);
+			}
+		}
+	}
 }

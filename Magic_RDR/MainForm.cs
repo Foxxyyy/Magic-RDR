@@ -1,4 +1,4 @@
-﻿using Magic_RDR.Models;
+using Magic_RDR.Models;
 using Magic_RDR.RPF;
 using Magic_RDR.Viewers;
 using System;
@@ -1229,13 +1229,9 @@ namespace Magic_RDR
                 }
                 else if (tag.Entry.Name.EndsWith(".awc"))
                 {
-                    if (nSwitch)
-                    {
-                        MessageBox.Show("You can't view this file yet, sorry.\n\nWorking on it !", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
                     fileNameStatusLabel.Text = string.Format("Loading {0}... This operation can take time.", tag.Entry.Name);
                     System.Windows.Forms.Application.DoEvents();
+
                     AudioViewerForm audioViewer = new AudioViewerForm(tag);
                     if (!audioViewer.IsDisposed)
                     {
