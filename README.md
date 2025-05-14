@@ -2,10 +2,8 @@
 
 RPF Editor for Red Dead Redemption (no longer in active development)
 
-If you want to mod the PC or Nintendo Switch versions you can also take a look at [CodeX](https://github.com/Foxxyyy/CodeX.Games.RDR1)
-
 This tool supports the Xbox 360, Nintendo Switch, PS4 & PC platforms.                   
-Some features are only supported for the Xbox version which was the main target originally (XSF, AWC, etc.)
+Some features are only supported for the Xbox version which was the main target originally.
 
 # Features
  - Add/remove files/directories
@@ -42,6 +40,3 @@ Some features are only supported for the Xbox version which was the main target 
 ![Screenshot](Magic_RDR/Resources/example_model_viewer_2.png)
 ![Screenshot](Magic_RDR/Resources/example_texture_viewer.png)
 ![Screenshot](Magic_RDR/Resources/example_script_viewer.png)
-
-We are also working on a [ScriptHook ASI trainer](https://www.youtube.com/watch?v=74zuDQ8vYAs) if interested :)                                                  
-![Screenshot](Magic_RDR/Resources/silent_virtues.png)
