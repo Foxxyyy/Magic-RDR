@@ -54,17 +54,18 @@ namespace Magic_RDR
                     LoadRPF(LastRPFPath);
                 }
 
-                //Remove temp files
-                string[] files = Directory.GetFiles(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "*.*", SearchOption.AllDirectories);
+				//Remove temp files
+				var files = Directory.GetFiles(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "*.*", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
                     if ((file.Contains("mat") && file.EndsWith(".png")) || file.EndsWith(".awc") || file.EndsWith(".wav"))
                         File.Delete(file);
                 }
 
-                string exportPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Temp");
+				var exportPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Temp");
                 files = Directory.GetFiles(exportPath);
                 foreach (var file in files)
+
                 {
                     string filename = Path.GetFileName(file);
                     if (File.Exists(file) && !filename.EndsWith(".exe") && !filename.EndsWith(".ini"))
@@ -73,12 +74,24 @@ namespace Magic_RDR
                     }
                 }
 
-                string[] subDirectories = Directory.GetDirectories(exportPath);
+				var subDirectories = Directory.GetDirectories(exportPath);
                 foreach (var subDirectory in subDirectories)
                 {
                     Directory.Delete(subDirectory, true);
                 }
-            }
+
+				try
+				{
+					var tempDir = Path.GetTempPath();
+					var tempWavFiles = Directory.GetFiles(tempDir, "*.wav", SearchOption.TopDirectoryOnly);
+
+					foreach (var file in tempWavFiles)
+					{
+						try { File.Delete(file); } catch { }
+					}
+				}
+				catch { }
+			}
             else
             {
                 CommandLine = true;
