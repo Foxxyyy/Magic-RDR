@@ -388,12 +388,21 @@ namespace Magic_RDR.Viewers
             }
         }
 
-		private void ImportResourceByIndex(string[] lines)
+		private void ImportTextIntoListView(ListView lv, string[] lines)
 		{
-			// Expected line format: [index] - 0xKEY - VALUE
-			Regex regex = new Regex(@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*(.*)$");
+			bool hasThreeColumns = DetectThreeColumnFormat(lines);
 
-			this.listView.BeginUpdate();
+			// For 3 columns: [index] - 0xKEY - VALUE
+			Regex threeColRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*(.*)$",
+				RegexOptions.Compiled);
+
+			// For 2 columns: [index] - VALUE
+			Regex twoColRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*(.*)$",
+				RegexOptions.Compiled);
+
+			lv.BeginUpdate();
 
 			try
 			{
@@ -402,31 +411,71 @@ namespace Magic_RDR.Viewers
 					if (string.IsNullOrWhiteSpace(line))
 						continue;
 
-					Match m = regex.Match(line);
-					if (!m.Success)
-						continue;
+					string indexStr;
+					string valueStr;
 
-					string indexStr = m.Groups[1].Value;
-					string valueStr = m.Groups[2].Value;
+					if (hasThreeColumns)
+					{
+						Match m = threeColRegex.Match(line);
+						if (!m.Success)
+							continue;
 
-					// Find row by Index only
-					ListViewItem item = this.listView.Items
+						indexStr = m.Groups[1].Value;
+						valueStr = m.Groups[2].Value;
+					}
+					else
+					{
+						Match m = twoColRegex.Match(line);
+						if (!m.Success)
+							continue;
+
+						indexStr = m.Groups[1].Value;
+						valueStr = m.Groups[2].Value;
+					}
+
+					// Find row by index (first column)
+					ListViewItem item = lv.Items
 						.Cast<ListViewItem>()
 						.FirstOrDefault(li =>
-							li.SubItems.Count >= 3 &&
+							li.SubItems.Count > 0 &&
 							li.SubItems[0].Text == indexStr);
 
 					if (item != null)
 					{
-						// Update only Value column
-						item.SubItems[2].Text = valueStr;
+						int valueColumnIndex = Math.Max(0, lv.Columns.Count - 1);
+						if (item.SubItems.Count > valueColumnIndex)
+						{
+							// Update last column (Value)
+							item.SubItems[valueColumnIndex].Text = valueStr;
+						}
 					}
 				}
 			}
 			finally
 			{
-				this.listView.EndUpdate();
+				lv.EndUpdate();
 			}
+		}
+
+		private bool DetectThreeColumnFormat(string[] lines)
+		{
+			// If we find a line like "[0] - 0xXXXXXXXX - ...", treat file as 3-column
+			Regex detectRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*",
+				RegexOptions.Compiled);
+
+			foreach (string line in lines)
+			{
+				if (string.IsNullOrWhiteSpace(line))
+					continue;
+
+				if (detectRegex.IsMatch(line))
+					return true;
+
+				break;
+			}
+
+			return false;
 		}
 
 		private void importButton_Click(object sender, EventArgs e)
@@ -450,10 +499,28 @@ namespace Magic_RDR.Viewers
 				return;
 			}
 
-			if (this.IsResource)
+			// Try to get ListView from currently selected tab
+			ListView lv = null;
+
+			if (this.tabControl.SelectedTab != null)
 			{
-				ImportResourceByIndex(lines);
+				lv = this.tabControl.SelectedTab.Controls
+					.OfType<ListView>()
+					.FirstOrDefault();
 			}
+
+			// Fallback to main listView if nothing found
+			if (lv == null)
+				lv = this.listView;
+
+			if (lv == null)
+			{
+				MessageBox.Show("No ListView available for import.", "Import",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			ImportTextIntoListView(lv, lines);
 
 			MessageBox.Show("Import finished. Now you can press Save.", "Import",
 				MessageBoxButtons.OK, MessageBoxIcon.Information);
