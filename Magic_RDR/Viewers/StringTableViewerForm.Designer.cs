@@ -1,4 +1,4 @@
-﻿
+
 namespace Magic_RDR.Viewers
 {
     partial class StringTableViewerForm

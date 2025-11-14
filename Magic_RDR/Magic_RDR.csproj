@@ -501,6 +501,7 @@
     <None Include="Resources\1200px-OOjs_UI_icon_reload.svg.png" />
     <None Include="Resources\close.png" />
     <Content Include="Resources\nintendo-switch.png" />
+    <Content Include="Resources\page_in.png" />
     <Content Include="Resources\playstation.jpg" />
     <Content Include="Resources\xbox-360.png" />
   </ItemGroup>
