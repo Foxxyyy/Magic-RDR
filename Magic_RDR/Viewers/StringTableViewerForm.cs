@@ -402,6 +402,15 @@ namespace Magic_RDR.Viewers
 				@"^\s*\[(\d+)\]\s*-\s*(.*)$",
 				RegexOptions.Compiled);
 
+			// Build index -> item map once (performance critical) ---
+			// key = index text from first column
+			Dictionary<string, ListViewItem> indexMap = lv.Items
+				.Cast<ListViewItem>()
+				.Where(li => li.SubItems.Count > 0)
+				.ToDictionary(li => li.SubItems[0].Text, li => li);
+
+			int valueColumnIndex = Math.Max(0, lv.Columns.Count - 1);
+
 			lv.BeginUpdate();
 
 			try
@@ -433,21 +442,14 @@ namespace Magic_RDR.Viewers
 						valueStr = m.Groups[2].Value;
 					}
 
-					// Find row by index (first column)
-					ListViewItem item = lv.Items
-						.Cast<ListViewItem>()
-						.FirstOrDefault(li =>
-							li.SubItems.Count > 0 &&
-							li.SubItems[0].Text == indexStr);
+					// Fast lookup by index instead of linear search
+					if (!indexMap.TryGetValue(indexStr, out ListViewItem item))
+						continue;
 
-					if (item != null)
+					if (item.SubItems.Count > valueColumnIndex)
 					{
-						int valueColumnIndex = Math.Max(0, lv.Columns.Count - 1);
-						if (item.SubItems.Count > valueColumnIndex)
-						{
-							// Update last column (Value)
-							item.SubItems[valueColumnIndex].Text = valueStr;
-						}
+						// Update last column (Value)
+						item.SubItems[valueColumnIndex].Text = valueStr;
 					}
 				}
 			}
@@ -459,7 +461,7 @@ namespace Magic_RDR.Viewers
 
 		private bool DetectThreeColumnFormat(string[] lines)
 		{
-			// If we find a line like "[0] - 0xXXXXXXXX - ...", treat file as 3-column
+			// Detect "[i] - 0xXXXXXXXX - ..." in any non-empty line
 			Regex detectRegex = new Regex(
 				@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*",
 				RegexOptions.Compiled);
@@ -469,10 +471,7 @@ namespace Magic_RDR.Viewers
 				if (string.IsNullOrWhiteSpace(line))
 					continue;
 
-				if (detectRegex.IsMatch(line))
-					return true;
-
-				break;
+				return detectRegex.IsMatch(line);
 			}
 
 			return false;
