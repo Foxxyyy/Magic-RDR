@@ -387,5 +387,76 @@ namespace Magic_RDR.Viewers
                 }
             }
         }
-    }
+
+		private void ImportResourceByIndex(string[] lines)
+		{
+			// Expected line format: [index] - 0xKEY - VALUE
+			Regex regex = new Regex(@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*(.*)$");
+
+			this.listView.BeginUpdate();
+
+			try
+			{
+				foreach (string line in lines)
+				{
+					if (string.IsNullOrWhiteSpace(line))
+						continue;
+
+					Match m = regex.Match(line);
+					if (!m.Success)
+						continue;
+
+					string indexStr = m.Groups[1].Value;
+					string valueStr = m.Groups[2].Value;
+
+					// Find row by Index only
+					ListViewItem item = this.listView.Items
+						.Cast<ListViewItem>()
+						.FirstOrDefault(li =>
+							li.SubItems.Count >= 3 &&
+							li.SubItems[0].Text == indexStr);
+
+					if (item != null)
+					{
+						// Update only Value column
+						item.SubItems[2].Text = valueStr;
+					}
+				}
+			}
+			finally
+			{
+				this.listView.EndUpdate();
+			}
+		}
+
+		private void importButton_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog
+			{
+				Title = "Import",
+				Filter = "Plain Text (*.txt)|*.txt",
+				FileName = Entry.Entry.Name
+			};
+
+			if (dialog.ShowDialog() != DialogResult.OK)
+				return;
+
+			string[] lines = File.ReadAllLines(dialog.FileName, Encoding.UTF8);
+
+			if (lines.Length == 0)
+			{
+				MessageBox.Show("File is empty, nothing to import.", "Import",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			if (this.IsResource)
+			{
+				ImportResourceByIndex(lines);
+			}
+
+			MessageBox.Show("Import finished. Now you can press Save.", "Import",
+				MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+	}
 }
