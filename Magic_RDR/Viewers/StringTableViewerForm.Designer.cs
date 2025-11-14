@@ -37,6 +37,7 @@ namespace Magic_RDR.Viewers
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.rebuildButton = new System.Windows.Forms.ToolStripButton();
             this.exportButton = new System.Windows.Forms.ToolStripButton();
+            this.importButton = new System.Windows.Forms.ToolStripButton();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.listView = new Magic_RDR.RPF.ListViewNF();
@@ -82,7 +83,8 @@ namespace Magic_RDR.Viewers
             this.toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.rebuildButton,
-            this.exportButton});
+            this.exportButton,
+            this.importButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(577, 26);
@@ -108,6 +110,16 @@ namespace Magic_RDR.Viewers
             this.exportButton.Size = new System.Drawing.Size(61, 20);
             this.exportButton.Text = "Export";
             this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
+            // importButton
+            // 
+            this.importButton.Image = global::Magic_RDR.Properties.Resources.page_in;
+            this.importButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+			this.importButton.Margin = new System.Windows.Forms.Padding(4, 4, 0, 2);
+			this.importButton.Name = "importButton";
+            this.importButton.Size = new System.Drawing.Size(61, 20);
+			this.importButton.Text = "Import";
+            this.importButton.Click += new System.EventHandler(this.importButton_Click);
             // 
             // tabControl
             // 
@@ -179,6 +191,7 @@ namespace Magic_RDR.Viewers
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton exportButton;
+        private System.Windows.Forms.ToolStripButton importButton;
         private System.Windows.Forms.ToolStripButton rebuildButton;
         private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.TabPage tabPage1;

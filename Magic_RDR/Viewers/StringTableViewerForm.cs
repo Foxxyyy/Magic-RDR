@@ -387,5 +387,142 @@ namespace Magic_RDR.Viewers
                 }
             }
         }
-    }
+
+		private void ImportTextIntoListView(ListView lv, string[] lines)
+		{
+			bool hasThreeColumns = DetectThreeColumnFormat(lines);
+
+			// For 3 columns: [index] - 0xKEY - VALUE
+			Regex threeColRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*(.*)$",
+				RegexOptions.Compiled);
+
+			// For 2 columns: [index] - VALUE
+			Regex twoColRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*(.*)$",
+				RegexOptions.Compiled);
+
+			// Build index -> item map once (performance critical) ---
+			// key = index text from first column
+			Dictionary<string, ListViewItem> indexMap = lv.Items
+				.Cast<ListViewItem>()
+				.Where(li => li.SubItems.Count > 0)
+				.ToDictionary(li => li.SubItems[0].Text, li => li);
+
+			int valueColumnIndex = Math.Max(0, lv.Columns.Count - 1);
+
+			lv.BeginUpdate();
+
+			try
+			{
+				foreach (string line in lines)
+				{
+					if (string.IsNullOrWhiteSpace(line))
+						continue;
+
+					string indexStr;
+					string valueStr;
+
+					if (hasThreeColumns)
+					{
+						Match m = threeColRegex.Match(line);
+						if (!m.Success)
+							continue;
+
+						indexStr = m.Groups[1].Value;
+						valueStr = m.Groups[2].Value;
+					}
+					else
+					{
+						Match m = twoColRegex.Match(line);
+						if (!m.Success)
+							continue;
+
+						indexStr = m.Groups[1].Value;
+						valueStr = m.Groups[2].Value;
+					}
+
+					// Fast lookup by index instead of linear search
+					if (!indexMap.TryGetValue(indexStr, out ListViewItem item))
+						continue;
+
+					if (item.SubItems.Count > valueColumnIndex)
+					{
+						// Update last column (Value)
+						item.SubItems[valueColumnIndex].Text = valueStr;
+					}
+				}
+			}
+			finally
+			{
+				lv.EndUpdate();
+			}
+		}
+
+		private bool DetectThreeColumnFormat(string[] lines)
+		{
+			// Detect "[i] - 0xXXXXXXXX - ..." in any non-empty line
+			Regex detectRegex = new Regex(
+				@"^\s*\[(\d+)\]\s*-\s*0x[0-9A-Fa-f]{8}\s*-\s*",
+				RegexOptions.Compiled);
+
+			foreach (string line in lines)
+			{
+				if (string.IsNullOrWhiteSpace(line))
+					continue;
+
+				return detectRegex.IsMatch(line);
+			}
+
+			return false;
+		}
+
+		private void importButton_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog
+			{
+				Title = "Import",
+				Filter = "Plain Text (*.txt)|*.txt",
+				FileName = Entry.Entry.Name
+			};
+
+			if (dialog.ShowDialog() != DialogResult.OK)
+				return;
+
+			string[] lines = File.ReadAllLines(dialog.FileName, Encoding.UTF8);
+
+			if (lines.Length == 0)
+			{
+				MessageBox.Show("File is empty, nothing to import.", "Import",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			// Try to get ListView from currently selected tab
+			ListView lv = null;
+
+			if (this.tabControl.SelectedTab != null)
+			{
+				lv = this.tabControl.SelectedTab.Controls
+					.OfType<ListView>()
+					.FirstOrDefault();
+			}
+
+			// Fallback to main listView if nothing found
+			if (lv == null)
+				lv = this.listView;
+
+			if (lv == null)
+			{
+				MessageBox.Show("No ListView available for import.", "Import",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			ImportTextIntoListView(lv, lines);
+
+			MessageBox.Show("Import finished. Now you can press Save.", "Import",
+				MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+	}
 }
