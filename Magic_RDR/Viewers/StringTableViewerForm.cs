@@ -249,14 +249,28 @@ namespace Magic_RDR.Viewers
         {
             StringTable st = new StringTable
             {
-                TableModValue = 101U
+                // These values are part of the resource header. Replacing them with
+                // defaults makes the rebuilt XST incompatible with the original.
+                TableModValue = this.Table.TableModValue
             };
+			st.SetVMT(this.Table.VMT);
             
             if (this.IsResource)
             {
                 foreach (ListViewItem item in this.listView.Items)
                 {
-                    st.AddEntry(item.SubItems[1].Text, item.SubItems[2].Text);
+                    int entryIndex;
+                    if (!int.TryParse(item.SubItems[0].Text, out entryIndex) ||
+                        entryIndex < 0 || entryIndex >= this.Table.Entries.Count)
+                    {
+                        return null;
+                    }
+
+                    // The key displayed by the viewer is already a numeric hash
+                    // (for example 0x1234ABCD). Passing that text to AddEntry(string,
+                    // string) hashes the display value again, so the game can no
+                    // longer find any of the strings in the rebuilt table.
+                    st.AddEntry(this.Table.Entries[entryIndex].Key, item.SubItems[2].Text);
                 }
             }
             else
