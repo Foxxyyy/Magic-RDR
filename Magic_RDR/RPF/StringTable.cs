@@ -310,7 +310,11 @@ namespace Magic_RDR.RPF
                 reader.Position = dictionary3[entry.Key];
                 reader.Write(1342177280U | (uint)((ulong)dictionary1["TempOffset"] & 268435455UL));
                 reader.Position = dictionary1["TempOffset"];
-                reader.WriteBytes(Encoding.ASCII.GetBytes(entry.StrValue + "\0"));
+
+                // XST strings are decoded as UTF-8 in Read(), so use the same
+                // encoding when rebuilding the resource. ASCII silently replaced
+                // accented and other non-ASCII characters with question marks.
+                reader.WriteBytes(Encoding.UTF8.GetBytes(entry.StrValue + "\0"));
             }
 
             byte[] b = new byte[DataUtils.NumLeftTill((int)reader.Length, (int)AppGlobals.Platform)];
